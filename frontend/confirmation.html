@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Confirmed — ShopZone</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .confirmation-wrap {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 48px 0 80px;
+    }
+
+    /* ── Steps ── */
+    .steps {
+      display: flex; align-items: center;
+      gap: 0; margin-bottom: 40px;
+    }
+    .step {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 13px; font-weight: 500;
+      color: var(--text-light);
+    }
+    .step.done { color: var(--accent); }
+    .step-num {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700;
+      background: var(--bg-card);
+      flex-shrink: 0;
+    }
+    .step.done .step-num {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: white;
+    }
+    .step-line {
+      flex: 1; height: 2px;
+      background: var(--border);
+      margin: 0 12px;
+    }
+    .step-line.done { background: var(--accent); }
+
+    /* ── Success hero ── */
+    .success-hero {
+      text-align: center;
+      padding: 40px 24px 32px;
+      background: var(--bg-card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-xl);
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .success-hero::before {
+      content: '';
+      position: absolute;
+      top: -60px; left: 50%;
+      transform: translateX(-50%);
+      width: 300px; height: 300px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(59,109,17,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .success-icon-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .success-icon-ring {
+      width: 88px; height: 88px;
+      border-radius: 50%;
+      background: #eaf3de;
+      display: flex; align-items: center; justify-content: center;
+      animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+    }
+    .success-icon-ring svg {
+      width: 40px; height: 40px;
+      stroke: #3b6d11; stroke-width: 2.5;
+      stroke-dasharray: 60;
+      stroke-dashoffset: 60;
+      animation: drawCheck 0.5s 0.3s ease forwards;
+      fill: none;
+    }
+    @keyframes popIn {
+      from { transform: scale(0.5); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
+    @keyframes drawCheck {
+      to { stroke-dashoffset: 0; }
+    }
+
+    .success-hero h1 {
+      font-size: clamp(1.5rem, 3vw, 2rem);
+      margin-bottom: 8px; color: var(--text);
+    }
+    .success-hero p {
+      font-size: 15px; color: var(--text-muted);
+      max-width: 380px; margin: 0 auto;
+    }
+
+    /* ── Order number card ── */
+    .order-number-card {
+      background: var(--bg-subtle);
+      border: 1.5px dashed var(--border-strong);
+      border-radius: var(--radius-lg);
+      padding: 20px 24px;
+      text-align: center;
+      margin: 24px 0 0;
+    }
+    .order-number-label {
+      font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--text-light); margin-bottom: 6px;
+    }
+    .order-number {
+      font-family: var(--font-display);
+      font-size: 2rem; font-weight: 700;
+      color: var(--text); letter-spacing: 0.05em;
+    }
+    .order-number-hint {
+      font-size: 12px; color: var(--text-light);
+      margin-top: 6px;
+    }
+
+    /* ── Detail cards ── */
+    .detail-card {
+      background: var(--bg-card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .detail-card-header {
+      display: flex; align-items: center; gap: 10px;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      font-family: var(--font-display);
+      font-size: 0.95rem; font-weight: 600;
+      color: var(--text);
+    }
+    .detail-card-header svg {
+      color: var(--accent); flex-shrink: 0;
+    }
+    .detail-card-body { padding: 16px 20px; }
+
+    /* ── Order items ── */
+    .order-item {
+      display: flex; align-items: center;
+      gap: 12px; padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .order-item:last-of-type { border-bottom: none; }
+    .order-item-img {
+      width: 48px; height: 48px;
+      border-radius: var(--radius);
+      object-fit: cover;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .order-item-img-placeholder {
+      width: 48px; height: 48px;
+      border-radius: var(--radius);
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      display: flex; align-items: center;
+      justify-content: center; font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+    .order-item-info { flex: 1; min-width: 0; }
+    .order-item-name {
+      font-size: 13px; font-weight: 600;
+      color: var(--text);
+      white-space: nowrap; overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .order-item-qty { font-size: 12px; color: var(--text-muted); }
+    .order-item-price {
+      font-size: 13px; font-weight: 700;
+      color: var(--text); flex-shrink: 0;
+    }
+
+    /* ── Totals ── */
+    .totals-section { border-top: 1px solid var(--border); padding-top: 12px; margin-top: 4px; }
+    .total-row {
+      display: flex; justify-content: space-between;
+      font-size: 13px; color: var(--text-muted);
+      padding: 4px 0;
+    }
+    .total-row.grand {
+      font-size: 1rem; font-weight: 700;
+      color: var(--text); padding-top: 10px;
+      margin-top: 6px; border-top: 1.5px solid var(--border);
+    }
+    .total-row.grand span:last-child {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+    }
+
+    /* ── Info rows ── */
+    .info-row {
+      display: flex; align-items: flex-start;
+      justify-content: space-between; gap: 16px;
+      font-size: 13px; padding: 6px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-label { color: var(--text-muted); flex-shrink: 0; }
+    .info-val { font-weight: 600; color: var(--text); text-align: right; }
+
+    /* ── Status badge ── */
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 12px; border-radius: 50px;
+      font-size: 12px; font-weight: 700;
+      background: #faeeda; color: #854f0b;
+    }
+    .status-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%; background: #854f0b;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* ── Delivery type badge ── */
+    .delivery-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 12px; border-radius: 50px;
+      font-size: 12px; font-weight: 600;
+      background: var(--accent-light); color: var(--accent);
+    }
+
+    /* ── Actions ── */
+    .confirmation-actions {
+      display: flex; flex-direction: column; gap: 12px;
+      margin-top: 8px;
+    }
+    .btn-shop-more {
+      width: 100%;
+      background: var(--accent); color: white;
+      border: none; border-radius: var(--radius-lg);
+      padding: 15px; font-size: 15px; font-weight: 600;
+      cursor: pointer; font-family: var(--font-body);
+      display: flex; align-items: center;
+      justify-content: center; gap: 10px;
+      transition: all var(--transition);
+    }
+    .btn-shop-more:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+    .btn-back-home {
+      width: 100%;
+      background: var(--bg-subtle); color: var(--text);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 14px; font-size: 15px; font-weight: 500;
+      cursor: pointer; font-family: var(--font-body);
+      display: flex; align-items: center;
+      justify-content: center; gap: 8px;
+      transition: all var(--transition);
+    }
+    .btn-back-home:hover { border-color: var(--border-strong); }
+
+    /* ── Confetti ── */
+    .confetti-piece {
+      position: fixed;
+      width: 8px; height: 8px;
+      border-radius: 2px;
+      top: -10px;
+      animation: confettiFall linear forwards;
+      pointer-events: none; z-index: 999;
+    }
+    @keyframes confettiFall {
+      0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+    }
+
+    @media (max-width: 480px) {
+      .confirmation-wrap { padding: 24px 0 60px; }
+      .steps { display: none; }
+      .order-number { font-size: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="navbar-root"></div>
+
+  <!-- Page header -->
+  <div style="border-bottom: 1px solid var(--border);">
+    <div class="container" style="padding-top:14px;padding-bottom:14px;">
+      <div class="breadcrumb">
+        <a href="index.html">Home</a>
+        <span>›</span>
+        <span>Order Confirmed</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="confirmation-wrap">
+
+      <!-- Steps -->
+      <div class="steps">
+        <div class="step done">
+          <div class="step-num">✓</div>
+          <span>Cart</span>
+        </div>
+        <div class="step-line done"></div>
+        <div class="step done">
+          <div class="step-num">✓</div>
+          <span>Checkout</span>
+        </div>
+        <div class="step-line done"></div>
+        <div class="step done">
+          <div class="step-num">✓</div>
+          <span>Confirmation</span>
+        </div>
+      </div>
+
+      <!-- Success hero -->
+      <div class="success-hero">
+        <div class="success-icon-wrap">
+          <div class="success-icon-ring">
+            <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+        </div>
+        <h1>Order Placed!</h1>
+        <p>Thank you for your order. We've received it and will get it ready for you shortly.</p>
+        <div class="order-number-card">
+          <div class="order-number-label">Your Order Number</div>
+          <div class="order-number" id="orderNumber">—</div>
+          <div class="order-number-hint">Save this number to track your order</div>
+        </div>
+      </div>
+
+      <!-- Order items -->
+      <div class="detail-card">
+        <div class="detail-card-header">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          Items Ordered
+        </div>
+        <div class="detail-card-body">
+          <div id="orderItemsList">—</div>
+          <div class="totals-section" id="orderTotals">—</div>
+        </div>
+      </div>
+
+      <!-- Delivery info -->
+      <div class="detail-card">
+        <div class="detail-card-header">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+          Delivery Details
+        </div>
+        <div class="detail-card-body" id="deliveryDetails">—</div>
+      </div>
+
+      <!-- Customer info -->
+      <div class="detail-card">
+        <div class="detail-card-header">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Customer Details
+        </div>
+        <div class="detail-card-body" id="customerDetails">—</div>
+      </div>
+
+      <!-- Actions -->
+      <div class="confirmation-actions">
+        <button class="btn-shop-more" onclick="window.location='products.html'">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          Continue Shopping
+        </button>
+        <button class="btn-back-home" onclick="window.location='index.html'">
+          ← Back to Homepage
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="footer-root"></div>
+
+  <script src="js/cart.js"></script>
+  <script src="js/api.js"></script>
+  <script>
+    function formatCurrency(n) { return '$' + Number(n).toFixed(2); }
+
+    function launchConfetti() {
+      const colors = ['#e8420a','#3b6d11','#1a1714','#f59e0b','#6366f1'];
+      for (let i = 0; i < 60; i++) {
+        setTimeout(() => {
+          const el = document.createElement('div');
+          el.className = 'confetti-piece';
+          el.style.left = Math.random() * 100 + 'vw';
+          el.style.background = colors[Math.floor(Math.random() * colors.length)];
+          el.style.animationDuration = (Math.random() * 2 + 1.5) + 's';
+          el.style.animationDelay = '0s';
+          el.style.width = (Math.random() * 6 + 5) + 'px';
+          el.style.height = (Math.random() * 6 + 5) + 'px';
+          el.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+          document.body.appendChild(el);
+          setTimeout(() => el.remove(), 4000);
+        }, i * 40);
+      }
+    }
+
+    function renderOrder(order) {
+      // Order number
+      document.getElementById('orderNumber').textContent = order.orderNumber || 'ORD-????';
+
+      // Items list
+      const itemsHtml = order.items.map(item => {
+        const imgSrc = item.image ? `http://localhost:5000${item.image}` : null;
+        return `
+          <div class="order-item">
+            ${imgSrc
+              ? `<img class="order-item-img" src="${imgSrc}" alt="${item.name}"
+                  onerror="this.outerHTML='<div class=\\'order-item-img-placeholder\\'>📦</div>'">`
+              : `<div class="order-item-img-placeholder">📦</div>`}
+            <div class="order-item-info">
+              <div class="order-item-name">${item.name}</div>
+              <div class="order-item-qty">Qty: ${item.quantity}</div>
+            </div>
+            <div class="order-item-price">${formatCurrency(item.price * item.quantity)}</div>
+          </div>`;
+      }).join('');
+
+      document.getElementById('orderItemsList').innerHTML = itemsHtml;
+
+      // Totals
+      document.getElementById('orderTotals').innerHTML = `
+        <div class="total-row">
+          <span>Subtotal</span>
+          <span>${formatCurrency(order.subtotal)}</span>
+        </div>
+        <div class="total-row">
+          <span>Delivery fee</span>
+          <span>${order.deliveryFee > 0 ? formatCurrency(order.deliveryFee) : 'Free'}</span>
+        </div>
+        <div class="total-row grand">
+          <span>Total Paid</span>
+          <span>${formatCurrency(order.total)}</span>
+        </div>`;
+
+      // Delivery details
+      const isDelivery = order.deliveryType === 'delivery';
+      document.getElementById('deliveryDetails').innerHTML = `
+        <div class="info-row">
+          <span class="info-label">Method</span>
+          <span class="info-val">
+            <span class="delivery-badge">
+              ${isDelivery ? '🚚 Delivery' : '🏪 Pickup'}
+            </span>
+          </span>
+        </div>
+        ${isDelivery && order.deliveryAddress ? `
+        <div class="info-row">
+          <span class="info-label">Address</span>
+          <span class="info-val">${order.deliveryAddress}</span>
+        </div>` : ''}
+        <div class="info-row">
+          <span class="info-label">Status</span>
+          <span class="info-val">
+            <span class="status-badge">
+              <span class="status-dot"></span>
+              Pending
+            </span>
+          </span>
+        </div>`;
+
+      // Customer details
+      document.getElementById('customerDetails').innerHTML = `
+        <div class="info-row">
+          <span class="info-label">Name</span>
+          <span class="info-val">${order.customer?.name || '—'}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Phone</span>
+          <span class="info-val">${order.customer?.phone || '—'}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Order placed</span>
+          <span class="info-val">${new Date(order.createdAt).toLocaleString()}</span>
+        </div>`;
+    }
+
+    function renderFallback() {
+      document.getElementById('orderNumber').textContent = 'Check your orders';
+      document.getElementById('orderItemsList').innerHTML =
+        '<p style="color:var(--text-muted);font-size:14px">Order details not available.</p>';
+      document.getElementById('orderTotals').innerHTML = '';
+      document.getElementById('deliveryDetails').innerHTML =
+        '<p style="color:var(--text-muted);font-size:14px">Please contact us with your order number.</p>';
+      document.getElementById('customerDetails').innerHTML = '';
+    }
+
+    // Init
+    document.getElementById('navbar-root').innerHTML = renderNavbar();
+    document.getElementById('footer-root').innerHTML = renderFooter();
+
+    const raw = sessionStorage.getItem('lastOrder');
+    if (raw) {
+      try {
+        const order = JSON.parse(raw);
+        renderOrder(order);
+        launchConfetti();
+        sessionStorage.removeItem('lastOrder');
+      } catch {
+        renderFallback();
+      }
+    } else {
+      renderFallback();
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Cart — ShopZone</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .cart-layout {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 32px;
+      align-items: start;
+      padding: 48px 0 80px;
+    }
+
+    /* ── Cart Items ── */
+    .cart-items-header {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .cart-items-header h2 { margin: 0; }
+    .clear-cart-btn {
+      font-size: 13px; font-weight: 500;
+      color: var(--text-muted);
+      background: none; border: none;
+      cursor: pointer; padding: 6px 10px;
+      border-radius: var(--radius);
+      transition: all var(--transition);
+    }
+    .clear-cart-btn:hover { background: #fdeee8; color: var(--accent); }
+
+    .cart-item {
+      display: grid;
+      grid-template-columns: 88px 1fr auto;
+      gap: 16px;
+      align-items: center;
+      padding: 20px 0;
+      border-bottom: 1px solid var(--border);
+      animation: fadeIn 0.25s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    .cart-item-img {
+      width: 88px; height: 88px;
+      border-radius: var(--radius-lg);
+      object-fit: cover;
+      background: var(--bg-subtle);
+      border: 1.5px solid var(--border);
+      cursor: pointer;
+      transition: transform var(--transition);
+      display: block;
+    }
+    .cart-item-img:hover { transform: scale(1.04); }
+    .cart-item-img-placeholder {
+      width: 88px; height: 88px;
+      border-radius: var(--radius-lg);
+      background: var(--bg-subtle);
+      border: 1.5px solid var(--border);
+      display: flex; align-items: center;
+      justify-content: center; font-size: 2rem;
+      cursor: pointer;
+    }
+
+    .cart-item-info { min-width: 0; }
+    .cart-item-category {
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--text-light); margin-bottom: 4px;
+    }
+    .cart-item-name {
+      font-family: var(--font-display);
+      font-size: 1rem; font-weight: 600;
+      color: var(--text); margin-bottom: 6px;
+      cursor: pointer; transition: color var(--transition);
+      white-space: nowrap; overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .cart-item-name:hover { color: var(--accent); }
+    .cart-item-unit-price {
+      font-size: 13px; color: var(--text-muted);
+    }
+
+    .cart-item-right {
+      display: flex; flex-direction: column;
+      align-items: flex-end; gap: 12px;
+    }
+    .cart-item-total {
+      font-family: var(--font-display);
+      font-size: 1.1rem; font-weight: 700;
+      color: var(--text);
+    }
+
+    /* Qty control inline */
+    .qty-control-sm {
+      display: flex; align-items: center;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .qty-btn-sm {
+      width: 34px; height: 34px;
+      background: var(--bg-subtle);
+      border: none; cursor: pointer;
+      font-size: 18px; font-weight: 400;
+      color: var(--text);
+      display: flex; align-items: center; justify-content: center;
+      transition: background var(--transition);
+      line-height: 1;
+    }
+    .qty-btn-sm:hover { background: var(--border); }
+    .qty-val-sm {
+      width: 40px; text-align: center;
+      font-size: 14px; font-weight: 600;
+      color: var(--text);
+      border-left: 1.5px solid var(--border);
+      border-right: 1.5px solid var(--border);
+      height: 34px; line-height: 34px;
+    }
+    .remove-btn {
+      font-size: 12px; color: var(--text-light);
+      background: none; border: none;
+      cursor: pointer; padding: 4px 2px;
+      transition: color var(--transition);
+      display: flex; align-items: center; gap: 4px;
+    }
+    .remove-btn:hover { color: var(--accent); }
+
+    /* ── Order Summary ── */
+    .order-summary {
+      position: sticky;
+      top: calc(var(--nav-h) + 24px);
+      background: var(--bg-card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+    }
+    .summary-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      font-family: var(--font-display);
+      font-size: 1.1rem; font-weight: 600;
+    }
+    .summary-body { padding: 20px 24px; }
+    .summary-row {
+      display: flex; justify-content: space-between;
+      align-items: center;
+      font-size: 14px; padding: 8px 0;
+      color: var(--text-muted);
+    }
+    .summary-row.total {
+      font-size: 1.1rem; font-weight: 700;
+      color: var(--text);
+      border-top: 1.5px solid var(--border);
+      padding-top: 16px; margin-top: 8px;
+    }
+    .summary-row.total span:last-child {
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+    }
+    .delivery-note {
+      display: flex; align-items: flex-start; gap: 8px;
+      background: var(--accent-light);
+      border-radius: var(--radius);
+      padding: 12px; margin: 16px 0;
+      font-size: 13px; color: var(--accent);
+      font-weight: 500;
+    }
+    .summary-footer { padding: 0 24px 24px; }
+    .checkout-btn {
+      width: 100%;
+      background: var(--accent); color: white;
+      border: none; border-radius: var(--radius-lg);
+      padding: 16px; font-size: 16px; font-weight: 600;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      transition: all var(--transition);
+      font-family: var(--font-body);
+    }
+    .checkout-btn:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+    .continue-link {
+      display: block; text-align: center;
+      margin-top: 14px; font-size: 13px;
+      color: var(--text-muted);
+      transition: color var(--transition);
+    }
+    .continue-link:hover { color: var(--accent); }
+
+    /* ── Empty cart ── */
+    .empty-cart {
+      text-align: center;
+      padding: 80px 24px;
+      grid-column: 1 / -1;
+    }
+    .empty-cart-icon {
+      width: 96px; height: 96px;
+      border-radius: 50%;
+      background: var(--bg-subtle);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.5rem;
+      margin: 0 auto 24px;
+    }
+    .empty-cart h2 {
+      font-size: 1.6rem; margin-bottom: 8px;
+    }
+    .empty-cart p { margin-bottom: 28px; font-size: 15px; }
+
+    @media (max-width: 900px) {
+      .cart-layout {
+        grid-template-columns: 1fr;
+        gap: 24px;
+        padding: 24px 0 60px;
+      }
+      .order-summary { position: static; }
+    }
+    @media (max-width: 480px) {
+      .cart-item {
+        grid-template-columns: 72px 1fr;
+        grid-template-rows: auto auto;
+      }
+      .cart-item-img,
+      .cart-item-img-placeholder { width: 72px; height: 72px; }
+      .cart-item-right {
+        grid-column: 1 / -1;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="navbar-root"></div>
+
+  <!-- Page header -->
+  <div style="border-bottom: 1px solid var(--border);">
+    <div class="container" style="padding-top:14px;padding-bottom:14px;">
+      <div class="breadcrumb">
+        <a href="index.html">Home</a>
+        <span>›</span>
+        <span>My Cart</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="cart-layout" id="cartLayout">
+      <!-- Rendered by JS -->
+    </div>
+  </div>
+
+  <div id="footer-root"></div>
+
+  <script src="js/cart.js"></script>
+  <script src="js/api.js"></script>
+  <script>
+    function formatCurrency(n) { return '$' + Number(n).toFixed(2); }
+
+    function renderCart() {
+      const items = Cart.getAll();
+      const layout = document.getElementById('cartLayout');
+
+      if (items.length === 0) {
+        layout.innerHTML = `
+          <div class="empty-cart">
+            <div class="empty-cart-icon">🛒</div>
+            <h2>Your cart is empty</h2>
+            <p>Looks like you haven't added anything yet.<br>Browse our products and find something you love.</p>
+            <a href="products.html" class="btn btn-primary btn-lg">
+              Start Shopping
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+          </div>`;
+        return;
+      }
+
+      const subtotal = Cart.subtotal();
+
+      layout.innerHTML = `
+        <!-- Left: Items -->
+        <div>
+          <div class="cart-items-header">
+            <h2>My Cart <span style="font-size:1rem;font-weight:400;color:var(--text-muted)">(${items.length} item${items.length !== 1 ? 's' : ''})</span></h2>
+            <button class="clear-cart-btn" onclick="confirmClear()">Clear all</button>
+          </div>
+          <div id="itemsList">
+            ${items.map(item => buildCartItem(item)).join('')}
+          </div>
+        </div>
+
+        <!-- Right: Summary -->
+        <div class="order-summary">
+          <div class="summary-header">Order Summary</div>
+          <div class="summary-body">
+            ${items.map(item => `
+              <div class="summary-row">
+                <span>${item.name} ×${item.quantity}</span>
+                <span>${formatCurrency(item.price * item.quantity)}</span>
+              </div>`).join('')}
+            <div class="summary-row total">
+              <span>Subtotal</span>
+              <span>${formatCurrency(subtotal)}</span>
+            </div>
+            <div class="delivery-note">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              Delivery fee is calculated at checkout based on your location.
+            </div>
+          </div>
+          <div class="summary-footer">
+            <button class="checkout-btn" onclick="window.location='checkout.html'">
+              Proceed to Checkout
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
+            <a href="products.html" class="continue-link">← Continue Shopping</a>
+          </div>
+        </div>`;
+    }
+
+    function buildCartItem(item) {
+      const imgSrc = item.image ? `http://localhost:5000${item.image}` : null;
+      const itemTotal = item.price * item.quantity;
+
+      return `
+        <div class="cart-item" id="cartItem-${item._id}">
+          <!-- Image -->
+          ${imgSrc
+            ? `<img class="cart-item-img" src="${imgSrc}" alt="${item.name}"
+                onclick="window.location='product.html?id=${item._id}'"
+                onerror="this.outerHTML='<div class=\\'cart-item-img-placeholder\\' onclick=\\'window.location=\\"product.html?id=${item._id}\\"\\'>📦</div>'">`
+            : `<div class="cart-item-img-placeholder" onclick="window.location='product.html?id=${item._id}'">📦</div>`}
+
+          <!-- Info -->
+          <div class="cart-item-info">
+            <div class="cart-item-category">${item.category}</div>
+            <div class="cart-item-name" onclick="window.location='product.html?id=${item._id}'">${item.name}</div>
+            <div class="cart-item-unit-price">${formatCurrency(item.price)} each</div>
+          </div>
+
+          <!-- Right side -->
+          <div class="cart-item-right">
+            <div class="cart-item-total">${formatCurrency(itemTotal)}</div>
+            <div class="qty-control-sm">
+              <button class="qty-btn-sm" onclick="updateQty('${item._id}', ${item.quantity - 1})">−</button>
+              <div class="qty-val-sm">${item.quantity}</div>
+              <button class="qty-btn-sm" onclick="updateQty('${item._id}', ${item.quantity + 1})">+</button>
+            </div>
+            <button class="remove-btn" onclick="removeItem('${item._id}')">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+              Remove
+            </button>
+          </div>
+        </div>`;
+    }
+
+    function updateQty(productId, newQty) {
+      if (newQty <= 0) {
+        removeItem(productId);
+        return;
+      }
+      Cart.updateQty(productId, newQty);
+      renderCart();
+    }
+
+    function removeItem(productId) {
+      const el = document.getElementById(`cartItem-${productId}`);
+      if (el) {
+        el.style.opacity = '0';
+        el.style.transform = 'translateX(16px)';
+        el.style.transition = 'all 0.2s ease';
+        setTimeout(() => { Cart.remove(productId); renderCart(); }, 200);
+      } else {
+        Cart.remove(productId);
+        renderCart();
+      }
+    }
+
+    function confirmClear() {
+      if (confirm('Remove all items from your cart?')) {
+        Cart.clear();
+        renderCart();
+      }
+    }
+
+    // Init
+    document.getElementById('navbar-root').innerHTML = renderNavbar();
+    document.getElementById('footer-root').innerHTML = renderFooter();
+    renderCart();
+  </script>
+</body>
+</html>
