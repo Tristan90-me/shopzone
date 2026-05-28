@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login — ShopZone</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap');
+    @import url('https://api.fontshare.com/v2/css?f[]=clash-display@600,700&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #1a1714;
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .login-card {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 40px;
+      width: 100%; max-width: 400px;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.4);
+    }
+    .login-logo {
+      font-family: 'Clash Display', sans-serif;
+      font-size: 1.6rem; font-weight: 700;
+      color: #1a1714; margin-bottom: 4px;
+      text-align: center;
+    }
+    .login-logo span { color: #e8420a; }
+    .login-badge {
+      text-align: center;
+      font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: #9e9994; margin-bottom: 32px;
+    }
+    .form-group { margin-bottom: 16px; }
+    .form-label {
+      display: block; margin-bottom: 6px;
+      font-size: 12px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.05em;
+      color: #6b6560;
+    }
+    .form-input {
+      width: 100%; padding: 11px 14px;
+      border: 1.5px solid #e2ded9;
+      border-radius: 10px; font-size: 15px;
+      color: #1a1714; background: #f7f5f0;
+      transition: border-color 0.2s;
+      font-family: 'DM Sans', sans-serif;
+      outline: none;
+    }
+    .form-input:focus { border-color: #e8420a; background: white; }
+    .login-btn {
+      width: 100%; padding: 13px;
+      background: #e8420a; color: white;
+      border: none; border-radius: 10px;
+      font-size: 15px; font-weight: 600;
+      cursor: pointer; margin-top: 8px;
+      font-family: 'DM Sans', sans-serif;
+      transition: all 0.2s;
+      display: flex; align-items: center;
+      justify-content: center; gap: 8px;
+    }
+    .login-btn:hover { background: #c93508; transform: translateY(-1px); }
+    .login-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .error-msg {
+      background: #fef2f2; color: #dc2626;
+      border: 1px solid #fecaca;
+      border-radius: 8px; padding: 10px 14px;
+      font-size: 13px; margin-bottom: 16px;
+      display: none;
+    }
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .login-footer {
+      text-align: center; margin-top: 24px;
+      font-size: 13px; color: #9e9994;
+    }
+    .login-footer a { color: #e8420a; }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <div class="login-logo">Shop<span>Zone</span></div>
+    <div class="login-badge">Admin Panel</div>
+
+    <div class="error-msg" id="errorMsg"></div>
+
+    <div class="form-group">
+      <label class="form-label" for="username">Username</label>
+      <input class="form-input" type="text" id="username"
+        placeholder="Enter your username" autocomplete="username">
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="password">Password</label>
+      <input class="form-input" type="password" id="password"
+        placeholder="Enter your password" autocomplete="current-password">
+    </div>
+
+    <button class="login-btn" id="loginBtn" onclick="handleLogin()">
+      Sign In
+    </button>
+
+    <div class="login-footer">
+      <a href="../index.html">← Back to store</a>
+    </div>
+  </div>
+
+  <script>
+    const API = 'http://localhost:5000/api';
+
+    // Redirect if already logged in
+    if (localStorage.getItem('adminToken')) {
+      window.location.href = 'dashboard.html';
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') handleLogin();
+    });
+
+    async function handleLogin() {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const btn = document.getElementById('loginBtn');
+      const errorMsg = document.getElementById('errorMsg');
+
+      errorMsg.style.display = 'none';
+
+      if (!username || !password) {
+        errorMsg.textContent = 'Please enter both username and password.';
+        errorMsg.style.display = 'block';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spinner"></div> Signing in...';
+
+      try {
+        const res = await fetch(`${API}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.message || 'Login failed');
+
+        localStorage.setItem('adminToken', data.token);
+        localStorage.setItem('adminUser', data.username);
+        window.location.href = 'dashboard.html';
+      } catch (err) {
+        errorMsg.textContent = err.message || 'Invalid credentials. Please try again.';
+        errorMsg.style.display = 'block';
+        btn.disabled = false;
+        btn.innerHTML = 'Sign In';
+      }
+    }
+  </script>
+</body>
+</html>
