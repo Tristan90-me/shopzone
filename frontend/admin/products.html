@@ -305,7 +305,7 @@
       }
 
       document.getElementById('productsBody').innerHTML = products.map(p => {
-        const imgSrc = p.image ? `http://localhost:5000${p.image}` : null;
+        const imgSrc = p.image ? p.image : null;
         return `
           <tr>
             <td>
@@ -374,7 +374,7 @@
       // Show existing image
       if (p.image) {
         const preview = document.getElementById('imgPreview');
-        preview.src = `http://localhost:5000${p.image}`;
+        preview.src = p.image;
         preview.style.display = 'block';
         document.getElementById('uploadContent').style.display = 'none';
       } else {

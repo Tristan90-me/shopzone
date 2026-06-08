@@ -283,7 +283,7 @@
 
     function buildProductCard(p) {
       const inStock = p.stock > 0;
-      const imgSrc = p.image ? `http://localhost:5000${p.image}` : 'images/placeholder.png';
+      const imgSrc = p.image ? p.image : 'images/placeholder.png';
       return `
         <div class="product-card" onclick="window.location='product.html?id=${p._id}'">
           <div class="product-card-img-wrap">

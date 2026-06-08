@@ -450,7 +450,7 @@
       }
 
       document.getElementById('summaryItems').innerHTML = items.map(item => {
-        const imgSrc = item.image ? `http://localhost:5000${item.image}` : null;
+        const imgSrc = item.image ? item.image : null;
         return `
           <div class="summary-item">
             ${imgSrc

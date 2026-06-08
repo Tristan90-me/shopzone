@@ -327,7 +327,7 @@
     function renderProduct(p) {
       currentProduct = p;
       const inStock = p.stock > 0;
-      const imgSrc = p.image ? `http://localhost:5000${p.image}` : null;
+      const imgSrc = p.image ? p.image : null;
 
       document.title = `${p.name} — ShopZone`;
       document.getElementById('breadcrumbName').textContent = p.name;
@@ -402,7 +402,7 @@
 
     function buildRelatedCard(p) {
       const inStock = p.stock > 0;
-      const imgSrc = p.image ? `http://localhost:5000${p.image}` : 'images/placeholder.png';
+      const imgSrc = p.image ? p.image : 'images/placeholder.png';
       return `
         <div class="product-card" onclick="window.location='product.html?id=${p._id}'">
           <div class="product-card-img-wrap">

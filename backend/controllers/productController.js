@@ -1,4 +1,5 @@
 const Product = require('../models/Product');
+const { cloudinary } = require('../config/cloudinary');
 
 // GET /api/products
 exports.getProducts = async (req, res) => {
@@ -7,7 +8,6 @@ exports.getProducts = async (req, res) => {
     let filter = {};
     if (search) filter.name = { $regex: search, $options: 'i' };
     if (category) filter.category = category;
-
     const products = await Product.find(filter).sort({ createdAt: -1 });
     res.json(products);
   } catch (err) {
@@ -30,23 +30,53 @@ exports.getProduct = async (req, res) => {
 exports.createProduct = async (req, res) => {
   try {
     const { name, price, description, category, stock } = req.body;
-    const image = req.file ? `/uploads/${req.file.filename}` : '';
-    const product = await Product.create({ name, price, description, category, stock, image });
+
+    // Cloudinary gives us req.file.path as the full URL
+    // and req.file.filename as the public_id
+    const image = req.file ? req.file.path : '';
+    const imagePublicId = req.file ? req.file.filename : '';
+
+    const product = await Product.create({
+      name,
+      price,
+      description,
+      category,
+      stock,
+      image,
+      imagePublicId,
+    });
+
     res.status(201).json(product);
   } catch (err) {
-    console.error('CREATE PRODUCT ERROR:', err.message); // 👈 add this
-    res.status(500).json({ message: err.message });      // 👈 change this
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
 // PUT /api/products/:id (admin)
 exports.updateProduct = async (req, res) => {
   try {
-    const updates = { ...req.body };
-    if (req.file) updates.image = `/uploads/${req.file.filename}`;
-    const product = await Product.findByIdAndUpdate(req.params.id, updates, { new: true });
+    const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ message: 'Product not found' });
-    res.json(product);
+
+    const updates = { ...req.body };
+
+    // If a new image was uploaded
+    if (req.file) {
+      // Delete old image from Cloudinary if it exists
+      if (product.imagePublicId) {
+        await cloudinary.uploader.destroy(product.imagePublicId);
+      }
+      updates.image = req.file.path;
+      updates.imagePublicId = req.file.filename;
+    }
+
+    const updated = await Product.findByIdAndUpdate(
+      req.params.id,
+      updates,
+      { new: true }
+    );
+
+    res.json(updated);
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
   }
@@ -55,8 +85,15 @@ exports.updateProduct = async (req, res) => {
 // DELETE /api/products/:id (admin)
 exports.deleteProduct = async (req, res) => {
   try {
-    const product = await Product.findByIdAndDelete(req.params.id);
+    const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ message: 'Product not found' });
+
+    // Delete image from Cloudinary if it exists
+    if (product.imagePublicId) {
+      await cloudinary.uploader.destroy(product.imagePublicId);
+    }
+
+    await product.deleteOne();
     res.json({ message: 'Product deleted' });
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
