@@ -2,7 +2,7 @@
    api.js — Centralized API calls
 ============================================ */
 
-const API_BASE = 'https://shopzone-backend.onrender.com/api';
+const API_BASE = 'https://shopzone-pjoq.onrender.com/api';
 
 async function apiFetch(endpoint, options = {}) {
   const token = localStorage.getItem('adminToken');
