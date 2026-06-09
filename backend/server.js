@@ -35,6 +35,21 @@ app.use('/api/orders',   require('./routes/orders'));
 app.use('/api/auth',     require('./routes/auth'));
 app.use('/api/settings', require('./routes/settings'));
 
+// Root route
+app.get('/', (req, res) => {
+  res.json({
+    message: '🚀 ShopZone API is running!',
+    status: 'ok',
+    version: '1.0.0',
+    endpoints: {
+      products: '/api/products',
+      orders:   '/api/orders',
+      auth:     '/api/auth/login',
+      settings: '/api/settings',
+    }
+  });
+});
+
 // Health check — Render pings this to keep the server awake
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 
