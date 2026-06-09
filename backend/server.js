@@ -29,8 +29,8 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
-// FIXED: Removed the invalid route string so it safely catches all preflight options
-app.options(cors());
+// Handle preflight requests
+app.options('.*', cors());
 
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
