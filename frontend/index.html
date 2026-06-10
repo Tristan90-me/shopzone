@@ -370,32 +370,29 @@
       return '$' + Number(amount).toFixed(2);
     }
 
-    function buildProductCard(product) {
-      const inStock = product.stock > 0;
-      const imgSrc = product.image
-        ? product.image
-        : 'images/placeholder.png';
-      return `
-        <div class="product-card" onclick="window.location='product.html?id=${product._id}'">
-          <div class="product-card-img-wrap">
-            <img class="product-card-img" src="${imgSrc}"
-              alt="${product.name}"
-              onerror="this.style.background='var(--bg-subtle)';this.style.display='block'">
-            ${!inStock ? '<div class="product-card-badge out">Out of Stock</div>' : ''}
-          </div>
-          <div class="product-card-body">
-            <div class="product-card-category">${product.category}</div>
-            <div class="product-card-name">${product.name}</div>
-            <div class="product-card-footer">
-              <div class="product-card-price">${formatCurrency(product.price)}</div>
-              <button class="product-card-add"
-                onclick="event.stopPropagation(); ${inStock ? `addToCart(${JSON.stringify(JSON.stringify(product))})` : ''}"
-                ${!inStock ? 'disabled style="opacity:0.4;cursor:not-allowed"' : ''}
-                title="${inStock ? 'Add to cart' : 'Out of stock'}">+</button>
-            </div>
-          </div>
-        </div>`;
-    }
+  function buildProductCard(product) {
+  const inStock = product.stock > 0;
+  const imgSrc = product.image ? product.image : 'images/placeholder.png';
+  const productJson = JSON.stringify(JSON.stringify(product));
+
+  let card = '<div class="product-card" onclick="window.location=\'product.html?id=' + product._id + '\'">';
+  card += '<div class="product-card-img-wrap">';
+  card += '<img class="product-card-img" src="' + imgSrc + '" alt="' + product.name + '" onerror="this.style.background=\'var(--bg-subtle)\'">';
+  if (!inStock) card += '<div class="product-card-badge out">Out of Stock</div>';
+  card += '</div>';
+  card += '<div class="product-card-body">';
+  card += '<div class="product-card-category">' + product.category + '</div>';
+  card += '<div class="product-card-name">' + product.name + '</div>';
+  card += '<div class="product-card-footer">';
+  card += '<div class="product-card-price">' + formatCurrency(product.price) + '</div>';
+  if (inStock) {
+    card += '<button class="product-card-add" onclick="event.stopPropagation();addToCart(' + productJson + ')" title="Add to cart">+</button>';
+  } else {
+    card += '<button class="product-card-add" disabled style="opacity:0.4;cursor:not-allowed" title="Out of stock">+</button>';
+  }
+  card += '</div></div></div>';
+  return card;
+}
 
     function addToCart(productJson) {
       const product = JSON.parse(productJson);
@@ -427,13 +424,14 @@
         const cats = [...new Set(products.map(p => p.category))];
         const catRow = document.getElementById('categoriesRow');
         catRow.innerHTML = cats.map(cat => {
-          const meta = CATEGORY_META[cat] || { icon: '🏷️' };
-          return `
-            <a href="products.html?category=${encodeURIComponent(cat)}" class="cat-card">
-              <div class="cat-icon">${meta.icon}</div>
-              <div class="cat-name">${cat}</div>
-            </a>`;
-        }).join('');
+         const meta = CATEGORY_META[cat] || { icon: '🏷️' };
+         const icon = meta.icon;
+         const encodedCat = encodeURIComponent(cat);
+         return '<a href="products.html?category=' + encodedCat + '" class="cat-card">'
+         + '<div class="cat-icon">' + icon + '</div>'
+         + '<div class="cat-name">' + cat + '</div>'
+         + '</a>';
+     }).join('');
 
       } catch (err) {
         document.getElementById('featuredGrid').innerHTML = `
