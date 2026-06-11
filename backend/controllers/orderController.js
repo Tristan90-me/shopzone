@@ -4,28 +4,67 @@ const Settings = require('../models/Settings');
 // POST /api/orders — place an order (public)
 exports.placeOrder = async (req, res) => {
   try {
-    const { customer, items, deliveryType, deliveryAddress } = req.body;
-
-    const settings = await Settings.findOne();
-    const deliveryFee = (deliveryType === 'delivery' && settings?.deliveryEnabled)
-      ? (settings.deliveryFee || 0) : 0;
-
-    const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    const total = subtotal + deliveryFee;
-
-    const order = await Order.create({
+    const {
       customer,
       items,
+      deliveryType,
+      deliveryAddress,
       subtotal,
       deliveryFee,
       total,
+      note,
+    } = req.body;
+
+    // Basic validation
+    if (!customer?.phone) {
+      return res.status(400).json({ message: 'Phone number is required' });
+    }
+    if (!items || items.length === 0) {
+      return res.status(400).json({ message: 'Order must have at least one item' });
+    }
+    if (!deliveryType) {
+      return res.status(400).json({ message: 'Delivery type is required' });
+    }
+
+    // Sanitize items — product ref is optional
+    const sanitizedItems = items.map(item => ({
+      name: item.name,
+      price: Number(item.price),
+      quantity: Number(item.quantity),
+      ...(item.product ? { product: item.product } : {}),
+    }));
+
+    // Recalculate totals server-side for safety
+    const calculatedSubtotal = sanitizedItems.reduce(
+      (sum, item) => sum + item.price * item.quantity, 0
+    );
+
+    let calculatedDeliveryFee = 0;
+    if (deliveryType === 'delivery') {
+      const settings = await Settings.findOne();
+      calculatedDeliveryFee = settings?.deliveryEnabled
+        ? (settings.deliveryFee || 0)
+        : 0;
+    }
+
+    const order = await Order.create({
+      customer: {
+        name: customer.name || '',
+        phone: customer.phone,
+      },
+      items: sanitizedItems,
+      subtotal: calculatedSubtotal,
+      deliveryFee: calculatedDeliveryFee,
+      total: calculatedSubtotal + calculatedDeliveryFee,
       deliveryType,
-      deliveryAddress: deliveryType === 'delivery' ? deliveryAddress : '',
+      deliveryAddress: deliveryType === 'delivery' ? (deliveryAddress || '') : '',
+      note: note || '',
     });
 
     res.status(201).json(order);
   } catch (err) {
-    res.status(500).json({ message: 'Server error' });
+    console.error('Place order error:', err);
+    res.status(500).json({ message: 'Server error', error: err.message });
   }
 };
 
@@ -54,6 +93,10 @@ exports.getOrder = async (req, res) => {
 exports.updateOrderStatus = async (req, res) => {
   try {
     const { status } = req.body;
+    const validStatuses = ['pending', 'ready', 'delivered', 'pickedup'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ message: 'Invalid status' });
+    }
     const order = await Order.findByIdAndUpdate(
       req.params.id,
       { status },
