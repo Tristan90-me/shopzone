@@ -1,7 +1,17 @@
 /* ============================================
    api.js — Centralized API calls
 ============================================ */
+// Ping the backend immediately on page load to wake it up
+// so it's ready by the time the user interacts
+const API_BASE = 'https://shopzone-pjoq.onrender.com/api';
 
+(async function wakeServer() {
+  try {
+    await fetch(`https://shopzone-pjoq.onrender.com/health`);
+  } catch {
+    // Silent fail — just a wake-up ping
+  }
+})();
 const API_BASE = 'https://shopzone-pjoq.onrender.com/api';
 
 async function apiFetch(endpoint, options = {}) {
