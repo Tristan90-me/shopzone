@@ -31,7 +31,7 @@
   --radius-xl: 20px;
   --font-display: 'Playfair Display', serif;
   --font-body: 'DM Sans', sans-serif;
-  --nav-h: 68px;
+  --nav-h: 76px;
   --transition: 0.2s ease;
 }
 
@@ -100,23 +100,13 @@ p { color: var(--text-muted); }
 .category-bar a.sale { color: #e0524a; }
 .navbar .container { display: flex; align-items: center; justify-content: space-between; gap: 24px; width: 100%; }
 .nav-logo {
-  font-family: var(--font-display);
-  font-size: 1.3rem; font-weight: 700;
-  letter-spacing: 0.02em;
-  display: flex; flex-direction: column; align-items: center; gap: 2px;
-  color: var(--text);
-  text-align: center;
+  display: flex;
+  align-items: center;
 }
-.nav-logo span {
-  color: var(--gold);
-  font-size: 1.6rem;
-}
-.nav-logo small {
-  font-family: var(--font-body);
-  font-size: 9px; font-weight: 600;
-  letter-spacing: 0.15em;
-  color: var(--text-muted);
-  text-transform: uppercase;
+.nav-logo-img {
+  height: 52px;
+  width: auto;
+  object-fit: contain;
 }
 .nav-search { flex: 1; max-width: 420px; display: flex; align-items: center; background: var(--bg-card); border: 1.5px solid var(--border); border-radius: 50px; padding: 0 16px; gap: 8px; transition: border-color var(--transition); }
 .nav-search:focus-within { border-color: var(--accent); }

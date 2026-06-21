@@ -60,10 +60,8 @@ function renderNavbar(activePage = '') {
   return `
   <nav class="navbar">
     <div class="container">
-      <a href="/index.html" class="nav-logo">
-    <span>SZ</span>
-    ShopZone
-    <small>Quality · Trust · Excellence</small>
+    <a href="/index.html" class="nav-logo">
+    <img src="/images/logo.png" alt="Store Logo" class="nav-logo-img">
     </a>
       <div class="nav-search">
         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -104,7 +102,7 @@ function renderFooter() {
     <div class="container">
       <div class="footer-grid">
         <div>
-          <div class="footer-logo">Shop<span>Zone</span></div>
+          <img src="/images/logo.png" alt="Store Logo" style="height:56px;width:auto;object-fit:contain;margin-bottom:12px;filter:brightness(0) invert(1)">
           <p>Your go-to store for everything. Quality products, fast delivery, great prices.</p>
         </div>
         <div>
