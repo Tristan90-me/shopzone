@@ -66,7 +66,7 @@ function renderNavbar(activePage = '') {
       <div class="nav-search">
         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         <input type="text" placeholder="Search products..." id="navSearchInput">
-        <button onclick="handleNavSearch()">
+        <button onclick="toggleMobileSearch()">
           <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </button>
       </div>
@@ -87,16 +87,22 @@ function renderNavbar(activePage = '') {
 
 function handleNavSearch() {
   const input = document.getElementById('navSearchInput');
-  const isMobile = window.innerWidth <= 768;
-
-  if (isMobile) {
-    // On mobile, redirect straight to products page where search is visible
-    window.location.href = '/products.html';
-    return;
-  }
-
   if (input?.value.trim()) {
     window.location.href = `/products.html?search=${encodeURIComponent(input.value.trim())}`;
+  }
+}
+function toggleMobileSearch() {
+  const searchBox = document.querySelector('.nav-search');
+  const input = document.getElementById('navSearchInput');
+  if (window.innerWidth > 768) return;
+
+  const isExpanded = searchBox.classList.contains('mobile-expanded');
+  if (!isExpanded) {
+    searchBox.classList.add('mobile-expanded');
+    input.style.display = 'block';
+    input.focus();
+  } else {
+    handleNavSearch();
   }
 }
 document.addEventListener('keydown', (e) => {
