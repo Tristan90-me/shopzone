@@ -209,7 +209,9 @@ p { color: var(--text-muted); }
 
 /* ── Responsive ── */
 @media (max-width: 768px) {
-  .nav-search { display: flex; max-width: 140px; }
+  .nav-search { display: flex; max-width: 44px; padding: 0; justify-content: center; }
+  .nav-search input { display: none; }
+  .nav-search button { padding: 10px; }
   .nav-link { display: none; }
   .footer-grid { grid-template-columns: 1fr; gap: 32px; }
   .products-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
@@ -217,8 +219,6 @@ p { color: var(--text-muted); }
 @media (max-width: 480px) {
   .products-grid { grid-template-columns: 1fr; }
   .container { padding: 0 16px; }
-  .nav-search { max-width: 110px; }
-  .nav-search input::placeholder { font-size: 12px; }
 }
 /* ── Gold Hero Section ── */
 .hero-gold {

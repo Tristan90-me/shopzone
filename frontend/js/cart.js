@@ -87,11 +87,18 @@ function renderNavbar(activePage = '') {
 
 function handleNavSearch() {
   const input = document.getElementById('navSearchInput');
+  const isMobile = window.innerWidth <= 768;
+
+  if (isMobile) {
+    // On mobile, redirect straight to products page where search is visible
+    window.location.href = '/products.html';
+    return;
+  }
+
   if (input?.value.trim()) {
     window.location.href = `/products.html?search=${encodeURIComponent(input.value.trim())}`;
   }
 }
-
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && document.activeElement?.id === 'navSearchInput') handleNavSearch();
 });
