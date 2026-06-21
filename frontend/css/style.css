@@ -82,11 +82,13 @@ p { color: var(--text-muted); }
 .announcement-bar a { color: var(--gold); }
 .category-bar {
   background: var(--black);
-  display: flex; align-items: center;
-  gap: 28px;
-  padding: 0 24px;
   height: 44px;
   overflow-x: auto;
+}
+.category-bar-inner {
+  display: flex; align-items: center;
+  gap: 28px;
+  height: 100%;
 }
 .category-bar a {
   color: rgba(255,255,255,0.75);
@@ -243,7 +245,8 @@ p { color: var(--text-muted); }
   height: 100%;
   display: flex; align-items: center;
   max-width: 1200px; margin: 0 auto;
-  padding: 0 48px;
+  padding: 0 24px;
+  width: 100%;
 }
 .hero-gold-text { max-width: 480px; }
 .hero-gold-text h1 {

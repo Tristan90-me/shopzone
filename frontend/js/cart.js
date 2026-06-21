@@ -102,7 +102,7 @@ function renderFooter() {
     <div class="container">
       <div class="footer-grid">
         <div>
-          <img src="/images/logo.png" alt="Store Logo" style="height:56px;width:auto;object-fit:contain;margin-bottom:12px;filter:brightness(0) invert(1)">
+          <div class="footer-logo">Baaba<span>Hanson</span></div>
           <p>Your go-to store for everything. Quality products, fast delivery, great prices.</p>
         </div>
         <div>
