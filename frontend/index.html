@@ -406,13 +406,10 @@
 
     async function loadFeaturedProducts() {
       try {
-        const products = await ProductsAPI.getAll();
-        const grid = document.getElementById('featuredGrid');
+const products = await ProductsAPI.getAll();
+const grid = document.getElementById('featuredGrid');
 
-        // Update hero stat
-        document.getElementById('statProducts').textContent = products.length + '+';
-
-        if (products.length === 0) {
+if (products.length === 0) {
           grid.innerHTML = `
             <div class="empty-state" style="grid-column:1/-1">
               <div class="empty-state-icon">📦</div>
