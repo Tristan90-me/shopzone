@@ -64,25 +64,40 @@ function renderNavbar(activePage = '') {
     <img src="/images/logo.png" alt="Store Logo" class="nav-logo-img">
     </a>
       <div class="nav-search">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <input type="text" placeholder="Search products..." id="navSearchInput">
-        <button onclick="handleNavSearch()">
-          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </button>
-      </div>
+  <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+  <input type="text" placeholder="Search products..." id="navSearchInput">
+  <button onclick="handleNavSearch()">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+  </button>
+</div>
+<button class="mobile-search-btn" onclick="openMobileSearch()">
+  <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+</button>
       <div class="nav-actions">
         <a href="/products.html" class="nav-link ${activePage === 'products' ? 'active' : ''}">
           <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="7" height="7"/><rect x="15" y="3" width="7" height="7"/><rect x="15" y="14" width="7" height="7"/><rect x="2" y="14" width="7" height="7"/></svg>
           <span>Products</span>
         </a>
-        <a href="/cart.html" class="cart-btn">
+       <a href="/cart.html" class="cart-btn">
           <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
           Cart
           <span class="cart-count" style="display:${count > 0 ? 'flex' : 'none'}">${count}</span>
         </a>
       </div>
     </div>
-  </nav>`;
+  </nav>
+  <div class="mobile-search-overlay" id="mobileSearchOverlay">
+    <div class="container mobile-search-inner">
+      <div class="nav-search" style="display:flex;max-width:none;flex:1">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" placeholder="Search products..." id="mobileSearchInput" autofocus>
+        <button onclick="handleMobileSearch()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+      <button class="mobile-search-close" onclick="closeMobileSearch()">✕</button>
+    </div>
+  </div>`;
 }
 
 function handleNavSearch() {
@@ -91,11 +106,33 @@ function handleNavSearch() {
     window.location.href = `/products.html?search=${encodeURIComponent(input.value.trim())}`;
   }
 }
+function openMobileSearch() {
+  document.getElementById('mobileSearchOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('mobileSearchInput')?.focus(), 100);
+}
+
+function closeMobileSearch() {
+  document.getElementById('mobileSearchOverlay').classList.remove('open');
+}
+
+function handleMobileSearch() {
+  const input = document.getElementById('mobileSearchInput');
+  if (input?.value.trim()) {
+    window.location.href = `/products.html?search=${encodeURIComponent(input.value.trim())}`;
+  }
+}
 
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' && document.activeElement?.id === 'navSearchInput') handleNavSearch();
+  if (e.key === 'Enter' && document.activeElement?.id === 'navSearchInput') {
+    handleNavSearch();
+  }
+  if (e.key === 'Enter' && document.activeElement?.id === 'mobileSearchInput') {
+    handleMobileSearch();
+  }
+  if (e.key === 'Escape') {
+    closeMobileSearch();
+  }
 });
-
 function renderFooter() {
   return `
   <footer class="footer">
@@ -121,7 +158,7 @@ function renderFooter() {
         </div>
       </div>
       <div class="footer-bottom">
-        <span>© ${new Date().getFullYear()} ShopZone. All rights reserved.</span>
+        <span>© ${new Date().getFullYear()} Baaba Hanson. All rights reserved.</span>
       </div>
     </div>
   </footer>`;
