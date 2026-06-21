@@ -249,13 +249,14 @@ p { color: var(--text-muted); }
   .products-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
 }
 .nav-search.mobile-expanded {
-  width: 200px;
-  max-width: 200px;
+  width: 160px;
+  max-width: 160px;
   padding: 0 14px;
   border: 1.5px solid var(--border);
   background: var(--bg-card);
   position: absolute;
-  right: 16px;
+  left: 50%;
+  transform: translateX(-50%);
   top: 14px;
   z-index: 200;
 }
