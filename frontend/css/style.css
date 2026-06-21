@@ -260,13 +260,20 @@ p { color: var(--text-muted); }
   top: 14px;
   z-index: 200;
   gap: 4px;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 .nav-search.mobile-expanded input {
   display: block !important;
   font-size: 13px;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .nav-search.mobile-expanded button svg {
   width: 12px; height: 12px;
+  flex-shrink: 0;
 }
 @media (max-width: 480px) {
   .products-grid { grid-template-columns: 1fr; }
