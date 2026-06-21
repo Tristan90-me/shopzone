@@ -202,44 +202,47 @@
 </head>
 <body>
 
-  <!-- Navbar -->
-  <div id="navbar-root"></div>
+  <!-- Announcement bar -->
+<div class="announcement-bar">
+  <div class="container" style="display:flex;justify-content:space-between;width:100%;align-items:center">
+    <span>Free Shipping on Orders Over $100 | 30-Day Easy Returns</span>
+    <span style="display:flex;gap:20px">
+      <a href="#">Track Order</a>
+      <a href="#">Help Center</a>
+    </span>
+  </div>
+</div>
 
-  <!-- Hero -->
-  <section class="hero">
-    <div class="container">
-      <div class="hero-inner">
-        <div>
-          <div class="hero-tag">New arrivals every week</div>
-          <h1>Everything you<br>need, <em>delivered.</em></h1>
-          <p class="hero-sub">Browse hundreds of products across all categories — electronics, fashion, food, and more.</p>
-          <div class="hero-actions">
-            <a href="products.html" class="btn btn-primary btn-lg">
-              Shop Now
-              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-            </a>
-            <a href="#categories" class="btn btn-lg" style="color: rgba(247,245,240,0.7); border-color: rgba(255,255,255,0.15);">Browse Categories</a>
-          </div>
-        </div>
-        <div class="hero-stat">
-          <div class="hero-stat-item">
-            <div class="hero-stat-num" id="statProducts">—</div>
-            <div class="hero-stat-label">Products</div>
-          </div>
-          <div class="hero-divider"></div>
-          <div class="hero-stat-item">
-            <div class="hero-stat-num">Fast</div>
-            <div class="hero-stat-label">Delivery</div>
-          </div>
-          <div class="hero-divider"></div>
-          <div class="hero-stat-item">
-            <div class="hero-stat-num">24/7</div>
-            <div class="hero-stat-label">Support</div>
-          </div>
-        </div>
-      </div>
+<!-- Navbar -->
+<div id="navbar-root"></div>
+
+<!-- Category bar -->
+<nav class="category-bar">
+  <a href="products.html">All</a>
+  <a href="products.html?category=Beauty">Beauty</a>
+  <a href="products.html?category=Fashion">Fashion</a>
+  <a href="products.html?category=Electronics">Electronics</a>
+  <a href="products.html?category=Home">Home & Living</a>
+  <a href="products.html">New Arrivals</a>
+  <a href="products.html">Best Sellers</a>
+  <a href="#" class="sale">Sale</a>
+</nav>
+
+<!-- Hero -->
+<section class="hero-gold">
+  <div class="hero-gold-bg" style="background-image:url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1600&q=80')"></div>
+  <div class="hero-gold-overlay"></div>
+  <div class="hero-gold-content">
+    <div class="hero-gold-text">
+      <h1>Elevate Every Part of Your Life</h1>
+      <p>Beauty, Fashion, Electronics & Home — chosen for quality. Curated for you.</p>
+      <a href="products.html" class="hero-gold-btn">
+        Shop Now
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
     </div>
-  </section>
+  </div>
+</section>
 
   <!-- Categories -->
   <section class="section" id="categories">

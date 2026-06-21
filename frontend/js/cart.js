@@ -60,7 +60,11 @@ function renderNavbar(activePage = '') {
   return `
   <nav class="navbar">
     <div class="container">
-      <a href="/index.html" class="nav-logo">Shop<span>Zone</span></a>
+      <a href="/index.html" class="nav-logo">
+    <span>SZ</span>
+    ShopZone
+    <small>Quality · Trust · Excellence</small>
+    </a>
       <div class="nav-search">
         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         <input type="text" placeholder="Search products..." id="navSearchInput">
