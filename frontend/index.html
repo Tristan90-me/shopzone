@@ -95,32 +95,64 @@
     }
     .categories-scroll::-webkit-scrollbar { display: none; }
 
-    .cat-card {
-      flex-shrink: 0;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      gap: 8px;
-      width: 100px; padding: 20px 12px;
-      background: var(--bg-card);
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius-lg);
-      cursor: pointer;
-      transition: all var(--transition);
-      text-decoration: none;
-    }
-    .cat-card:hover, .cat-card.active {
-      border-color: var(--accent);
-      background: var(--accent-light);
-      transform: translateY(-2px);
-    }
-    .cat-icon { font-size: 1.8rem; line-height: 1; }
-    .cat-name {
-      font-size: 11px; font-weight: 600;
-      color: var(--text-muted);
-      text-align: center; line-height: 1.2;
-    }
-    .cat-card:hover .cat-name,
-    .cat-card.active .cat-name { color: var(--accent); }
+.categories-photo-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+.cat-photo-card {
+  position: relative;
+  height: 220px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  cursor: pointer;
+  text-decoration: none;
+  display: block;
+}
+.cat-photo-bg {
+  position: absolute; inset: 0;
+  background-size: cover;
+  background-position: center;
+  transition: transform 0.4s ease;
+}
+.cat-photo-card:hover .cat-photo-bg {
+  transform: scale(1.06);
+}
+.cat-photo-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.75) 100%);
+}
+.cat-photo-content {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  padding: 18px;
+  z-index: 1;
+}
+.cat-photo-name {
+  font-family: var(--font-display);
+  color: #fff;
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.cat-photo-link {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.85);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: gap var(--transition);
+}
+.cat-photo-card:hover .cat-photo-link { gap: 8px; color: #fff; }
+
+@media (max-width: 900px) {
+  .categories-photo-grid { grid-template-columns: repeat(2, 1fr); }
+  .cat-photo-card { height: 180px; }
+}
+@media (max-width: 480px) {
+  .categories-photo-grid { grid-template-columns: 1fr; }
+}
 
     /* ── Section header ── */
     .section-header {
@@ -361,15 +393,15 @@
   <script src="js/api.js"></script>
   <script>
     const CATEGORY_META = {
-      'Electronics':  { icon: '📱' },
-      'Fashion':      { icon: '👗' },
-      'Food':         { icon: '🛒' },
-      'Beauty':       { icon: '🧴' },
-      'Home':         { icon: '🏠' },
-      'Sports':       { icon: '⚽' },
-      'Books':        { icon: '📚' },
-      'Toys':         { icon: '🎮' },
-    };
+  'Electronics': { image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&q=80' },
+  'Fashion':     { image: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=600&q=80' },
+  'Food':        { image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=600&q=80' },
+  'Beauty':      { image: 'https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=600&q=80' },
+  'Home':        { image: 'https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=600&q=80' },
+  'Sports':      { image: 'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=600&q=80' },
+  'Books':       { image: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=600&q=80' },
+  'Toys':        { image: 'https://images.unsplash.com/photo-1558060370-d644479cb6f7?w=600&q=80' },
+};
 
     function formatCurrency(amount) {
       return '$' + Number(amount).toFixed(2);
@@ -424,16 +456,24 @@ if (products.length === 0) {
 
         // Build categories from products
         const cats = [...new Set(products.map(p => p.category))];
-        const catRow = document.getElementById('categoriesRow');
-        catRow.innerHTML = cats.map(cat => {
-         const meta = CATEGORY_META[cat] || { icon: '🏷️' };
-         const icon = meta.icon;
-         const encodedCat = encodeURIComponent(cat);
-         return '<a href="products.html?category=' + encodedCat + '" class="cat-card">'
-         + '<div class="cat-icon">' + icon + '</div>'
-         + '<div class="cat-name">' + cat + '</div>'
-         + '</a>';
-     }).join('');
+       const catRow = document.getElementById('categoriesRow');
+       catRow.innerHTML = cats.slice(0, 4).map(cat => {
+       const meta = CATEGORY_META[cat] || {
+    image: 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=600&q=80'
+  };
+  return `
+    <a href="products.html?category=${encodeURIComponent(cat)}" class="cat-photo-card">
+      <div class="cat-photo-bg" style="background-image:url('${meta.image}')"></div>
+      <div class="cat-photo-overlay"></div>
+      <div class="cat-photo-content">
+        <div class="cat-photo-name">${cat}</div>
+        <div class="cat-photo-link">
+          Explore Now
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+      </div>
+    </a>`;
+}).join('');
 
       } catch (err) {
         document.getElementById('featuredGrid').innerHTML = `
