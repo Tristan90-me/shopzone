@@ -454,10 +454,19 @@ if (products.length === 0) {
         // Show first 8
         grid.innerHTML = products.slice(0, 8).map(buildProductCard).join('');
 
-        // Build categories from products
-        const cats = [...new Set(products.map(p => p.category))];
-       const catRow = document.getElementById('categoriesRow');
-       catRow.innerHTML = cats.slice(0, 4).map(cat => {
+       // Build categories from products — fixed priority order
+const PRIORITY_ORDER = ['Beauty', 'Fashion', 'Electronics', 'Home'];
+const availableCats = [...new Set(products.map(p => p.category))];
+const cats = PRIORITY_ORDER.filter(cat => availableCats.includes(cat));
+
+// Fill remaining slots (if fewer than 4 priority categories exist) with other categories
+if (cats.length < 4) {
+  const extras = availableCats.filter(cat => !PRIORITY_ORDER.includes(cat));
+  cats.push(...extras.slice(0, 4 - cats.length));
+}
+
+const catRow = document.getElementById('categoriesRow');
+catRow.innerHTML = cats.slice(0, 4).map(cat => {
        const meta = CATEGORY_META[cat] || {
     image: 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=600&q=80'
   };
