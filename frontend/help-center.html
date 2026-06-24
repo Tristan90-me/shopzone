@@ -243,6 +243,143 @@
       overflow: hidden;
       margin-bottom: 72px;
     }
+    /* ── Message Us section ── */
+.message-section {
+  margin-bottom: 80px;
+}
+.message-tabs {
+  display: flex; gap: 8px;
+  margin-bottom: 28px;
+  border-bottom: 1.5px solid var(--border);
+}
+.message-tab {
+  padding: 12px 4px;
+  margin-right: 24px;
+  background: none; border: none;
+  font-size: 14px; font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  position: relative;
+  font-family: var(--font-body);
+  transition: color var(--transition);
+}
+.message-tab::after {
+  content: '';
+  position: absolute;
+  bottom: -1.5px; left: 0;
+  width: 0; height: 2px;
+  background: var(--gold);
+  transition: width 0.3s ease;
+}
+.message-tab.active { color: var(--text); }
+.message-tab.active::after { width: 100%; }
+
+.message-panel h2 { font-size: 1.4rem; margin-bottom: 6px; }
+.message-panel > p { font-size: 14px; margin-bottom: 24px; }
+
+.message-form {
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 32px;
+  animation: fadeUp 0.4s ease;
+}
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.send-msg-btn {
+  width: 100%;
+  background: var(--black); color: white;
+  border: none; border-radius: var(--radius-lg);
+  padding: 15px; font-size: 15px; font-weight: 600;
+  cursor: pointer; font-family: var(--font-body);
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  transition: all var(--transition);
+  margin-top: 8px;
+}
+.send-msg-btn:hover:not(:disabled) {
+  background: var(--gold-deep);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+.send-msg-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.lookup-row {
+  display: flex; gap: 10px;
+  margin-bottom: 28px;
+}
+.lookup-row .form-input { flex: 1; }
+.lookup-btn {
+  background: var(--black); color: white;
+  border: none; border-radius: var(--radius);
+  padding: 0 24px;
+  font-size: 14px; font-weight: 600;
+  cursor: pointer; font-family: var(--font-body);
+  transition: all var(--transition);
+}
+.lookup-btn:hover { background: var(--gold-deep); }
+
+.reply-thread {
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin-bottom: 16px;
+  animation: fadeUp 0.4s ease both;
+}
+.reply-thread-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.reply-thread-date { font-size: 12px; color: var(--text-light); }
+.reply-status {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11px; font-weight: 700;
+  padding: 3px 10px; border-radius: 50px;
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.reply-status.new { background: var(--accent-light); color: var(--gold-deep); }
+.reply-status.read { background: #e6f1fb; color: #185fa5; }
+.reply-status.replied { background: #eaf3de; color: #3b6d11; }
+
+.original-msg {
+  background: var(--bg-subtle);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  font-size: 13.5px;
+  color: var(--text);
+  margin-bottom: 12px;
+  line-height: 1.6;
+}
+.reply-bubble {
+  background: var(--accent-light);
+  border-left: 3px solid var(--gold);
+  border-radius: 0 var(--radius) var(--radius) var(--radius);
+  padding: 12px 16px;
+  font-size: 13.5px;
+  color: var(--text);
+  margin-bottom: 8px;
+  line-height: 1.6;
+  animation: fadeUp 0.3s ease both;
+}
+.reply-bubble-label {
+  font-size: 11px; font-weight: 700;
+  color: var(--gold-deep);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+.no-reply-yet {
+  font-size: 13px; color: var(--text-light);
+  font-style: italic;
+}
+
+@media (max-width: 600px) {
+  .form-row { grid-template-columns: 1fr; }
+  .lookup-row { flex-direction: column; }
+}
     .message-cta::before {
       content: '';
       position: absolute; inset: 0;
@@ -449,17 +586,75 @@
       </div>
     </div>
 
-    <!-- Message CTA -->
-    <div class="message-cta reveal">
-      <h2>Still need help?</h2>
-      <p>Leave us a message and we'll get back to you shortly.</p>
-      <a href="#" class="message-cta-btn">
-        Message Us
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-      </a>
+<!-- Message CTA -->
+<div class="message-cta reveal">
+  <h2>Still need help?</h2>
+  <p>Leave us a message and we'll get back to you shortly.</p>
+  <a href="#messageUsSection" class="message-cta-btn">
+    Message Us
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+  </a>
+</div>
+
+<!-- Message Us section -->
+<div class="message-section reveal" id="messageUsSection">
+  <div class="message-tabs">
+    <button class="message-tab active" onclick="switchMessageTab('send', this)">Leave a Message</button>
+    <button class="message-tab" onclick="switchMessageTab('view', this)">View Replies</button>
+  </div>
+
+  <!-- Send form -->
+  <div id="sendTab" class="message-panel">
+    <h2>Leave a message and we'll get back to you shortly</h2>
+    <p>Have a question about an order, a product, or anything else? Send us a message below.</p>
+
+    <div class="message-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="msgName">Full Name *</label>
+          <input class="form-input" type="text" id="msgName" placeholder="e.g. John Mensah">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="msgPhone">Phone Number *</label>
+          <input class="form-input" type="tel" id="msgPhone" placeholder="e.g. 0244000000">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="msgEmail">Email <span style="font-weight:400;text-transform:none">(optional)</span></label>
+          <input class="form-input" type="email" id="msgEmail" placeholder="e.g. you@email.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="msgOrderNum">Order Number <span style="font-weight:400;text-transform:none">(optional)</span></label>
+          <input class="form-input" type="text" id="msgOrderNum" placeholder="e.g. ORD-0042">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="msgText">Your Message *</label>
+        <textarea class="form-input" id="msgText" rows="5" placeholder="Tell us what's going on..." style="resize:vertical"></textarea>
+      </div>
+      <button class="send-msg-btn" id="sendMsgBtn" onclick="sendMessage()">
+        Send Message
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- View replies -->
+  <div id="viewTab" class="message-panel" style="display:none">
+    <h2>Check Replies</h2>
+    <p>Enter the phone number you used to send your message to see responses.</p>
+
+    <div class="lookup-row">
+      <input class="form-input" type="tel" id="lookupPhone" placeholder="Enter your phone number">
+      <button class="lookup-btn" onclick="lookupReplies()">Check</button>
     </div>
 
+    <div id="repliesResult"></div>
   </div>
+ </div>
+
+</div>
 
   <div id="footer-root"></div>
 
@@ -495,9 +690,116 @@
     }, { threshold: 0.1 });
     revealEls.forEach(el => observer.observe(el));
 
-    // Init
-    document.getElementById('navbar-root').innerHTML = renderNavbar();
-    document.getElementById('footer-root').innerHTML = renderFooter();
+   const API = 'https://shopzone-pjoq.onrender.com/api';
+
+// Tab switching
+function switchMessageTab(tab, btn) {
+  document.querySelectorAll('.message-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('sendTab').style.display = tab === 'send' ? 'block' : 'none';
+  document.getElementById('viewTab').style.display = tab === 'view' ? 'block' : 'none';
+}
+
+// Send message
+async function sendMessage() {
+  const name = document.getElementById('msgName').value.trim();
+  const phone = document.getElementById('msgPhone').value.trim();
+  const email = document.getElementById('msgEmail').value.trim();
+  const orderNumber = document.getElementById('msgOrderNum').value.trim();
+  const message = document.getElementById('msgText').value.trim();
+
+  if (!name || !phone || !message) {
+    showToast('Please fill in your name, phone and message', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('sendMsgBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner" style="width:16px;height:16px;border:2px solid rgba(255,255,255,0.4);border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite"></div> Sending...';
+
+  try {
+    const res = await fetch(`${API}/messages`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, phone, email, orderNumber, message }),
+    });
+
+    if (!res.ok) throw new Error();
+
+    // Save phone locally so "View Replies" can auto-fill
+    localStorage.setItem('lastMessagePhone', phone);
+
+    showToast('Message sent! We\'ll get back to you shortly.', 'success');
+
+    document.getElementById('msgName').value = '';
+    document.getElementById('msgPhone').value = '';
+    document.getElementById('msgEmail').value = '';
+    document.getElementById('msgOrderNum').value = '';
+    document.getElementById('msgText').value = '';
+  } catch {
+    showToast('Failed to send message. Please try again.', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `Send Message
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`;
+  }
+}
+
+// Lookup replies
+async function lookupReplies() {
+  const phone = document.getElementById('lookupPhone').value.trim();
+  if (!phone) {
+    showToast('Please enter your phone number', 'error');
+    return;
+  }
+
+  const resultDiv = document.getElementById('repliesResult');
+  resultDiv.innerHTML = '<p style="font-size:13px;color:var(--text-light)">Searching...</p>';
+
+  try {
+    const messages = await fetch(`${API}/messages/lookup?phone=${encodeURIComponent(phone)}`)
+      .then(r => r.json());
+
+    if (messages.length === 0) {
+      resultDiv.innerHTML = `
+        <div class="empty-state" style="padding:40px 20px">
+          <div class="empty-state-icon">📭</div>
+          <h3>No messages found</h3>
+          <p>We couldn't find any messages sent from this phone number.</p>
+        </div>`;
+      return;
+    }
+
+    resultDiv.innerHTML = messages.map(msg => `
+      <div class="reply-thread">
+        <div class="reply-thread-header">
+          <span class="reply-thread-date">${new Date(msg.createdAt).toLocaleString()}</span>
+          <span class="reply-status ${msg.status}">${msg.status}</span>
+        </div>
+        <div class="original-msg">
+          <strong>You:</strong> ${msg.message}
+          ${msg.orderNumber ? `<br><span style="color:var(--text-muted);font-size:12px">Order: ${msg.orderNumber}</span>` : ''}
+        </div>
+        ${msg.replies.length > 0
+          ? msg.replies.map(r => `
+              <div class="reply-bubble">
+                <div class="reply-bubble-label">ShopZone Team</div>
+                ${r.text}
+              </div>`).join('')
+          : '<div class="no-reply-yet">No reply yet — we\'ll respond shortly.</div>'}
+      </div>`).join('');
+  } catch {
+    resultDiv.innerHTML = '<p style="font-size:13px;color:#dc2626">Failed to load replies. Please try again.</p>';
+  }
+}
+
+// Init
+document.getElementById('navbar-root').innerHTML = renderNavbar();
+document.getElementById('footer-root').innerHTML = renderFooter();
+
+// Auto-fill lookup phone if they sent a message before
+const savedPhone = localStorage.getItem('lastMessagePhone');
+if (savedPhone) document.getElementById('lookupPhone').value = savedPhone;
   </script>
 </body>
 </html>
