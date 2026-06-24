@@ -128,8 +128,7 @@ function renderFooter() {
         <div>
           <div class="footer-heading">Info</div>
           <ul class="footer-links">
-            <li><a href="#">About Us</a></li>
-            <li><a href="#">Contact</a></li>
+            <li><a href="/help-center.html">Contact Us</a></li>
           </ul>
         </div>
       </div>
