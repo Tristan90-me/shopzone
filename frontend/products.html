@@ -672,7 +672,7 @@ try {
 
     // Scroll to section if URL has a hash
      if (!window.location.hash) {
-      scrollToSection(window.location.hash.replace('#', ''));
+      scrollToSection(window.location.hash.replace(0, 0));
 } else {
   document.documentElement.classList.add('no-smooth-scroll');
   window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
