@@ -2,6 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+<script>
+  if ('scrollRestoration' in history) {
+    history.scrollRestoration = 'manual';
+  }
+</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Products — ShopZone</title>
   <link rel="stylesheet" href="css/style.css">
@@ -219,6 +224,9 @@
 @media (max-width: 480px) {
   .featured-grid { grid-template-columns: 1fr; }
 }
+html.no-smooth-scroll {
+  scroll-behavior: auto !important;
+}
   </style>
 </head>
 <body>
@@ -426,7 +434,7 @@ if ('scrollRestoration' in history) {
 
 function forceScrollTopUnlessHash() {
   if (!window.location.hash) {
-    window.scrollTo(0, 0);
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
   }
 }
 
@@ -663,7 +671,16 @@ try {
     setupScrollReveal();
 
     // Scroll to section if URL has a hash
-      if (!window.location.hash) requestAnimationFrame(() => window.scrollTo(0, 0));
+     if (!window.location.hash) {
+      scrollToSection(window.location.hash.replace('#', ''));
+} else {
+  document.documentElement.classList.add('no-smooth-scroll');
+  window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  requestAnimationFrame(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    setTimeout(() => document.documentElement.classList.remove('no-smooth-scroll'), 50);
+  });
+}
   } catch (err) {
         document.getElementById('productsGrid').innerHTML = `
           <div class="empty-state" style="grid-column:1/-1">
