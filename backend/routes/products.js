@@ -5,12 +5,14 @@ const { upload } = require('../config/cloudinary');
 const {
   getProducts,
   getProduct,
+  getBestSellers,
   createProduct,
   updateProduct,
   deleteProduct,
 } = require('../controllers/productController');
 
 router.get('/', getProducts);
+router.get('/best-sellers', getBestSellers);
 router.get('/:id', getProduct);
 router.post('/', auth, upload.single('image'), createProduct);
 router.put('/:id', auth, upload.single('image'), updateProduct);

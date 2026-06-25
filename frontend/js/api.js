@@ -23,6 +23,7 @@ const ProductsAPI = {
     return apiFetch(`/products${qs ? '?' + qs : ''}`);
   },
   getOne: (id) => apiFetch(`/products/${id}`),
+  getBestSellers: () => apiFetch('/products/best-sellers'),
 };
 
 const OrdersAPI = {

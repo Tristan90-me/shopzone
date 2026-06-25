@@ -99,3 +99,37 @@ exports.deleteProduct = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+// GET /api/products/best-sellers (public)
+exports.getBestSellers = async (req, res) => {
+  try {
+    const Order = require('../models/Order');
+
+    const topSellers = await Order.aggregate([
+      { $unwind: '$items' },
+      {
+        $group: {
+          _id: '$items.product',
+          totalSold: { $sum: '$items.quantity' },
+        },
+      },
+      { $sort: { totalSold: -1 } },
+      { $limit: 8 },
+    ]);
+
+    const productIds = topSellers.map(t => t._id).filter(Boolean);
+    const products = await Product.find({ _id: { $in: productIds } });
+
+    // Preserve sales-rank order and attach totalSold
+    const ranked = topSellers
+      .map(t => {
+        const product = products.find(p => p._id.toString() === t._id?.toString());
+        return product ? { ...product.toObject(), totalSold: t.totalSold } : null;
+      })
+      .filter(Boolean);
+
+    res.json(ranked);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};

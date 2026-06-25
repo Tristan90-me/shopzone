@@ -165,6 +165,60 @@
       .sidebar { display: none; }
       .mobile-filter-btn { display: flex; }
     }
+.featured-section {
+  margin-bottom: 48px;
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.featured-section.in-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+.featured-header {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 20px;
+}
+.featured-icon {
+  width: 44px; height: 44px;
+  border-radius: var(--radius);
+  background: var(--accent-light);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+.featured-header h2 { font-size: 1.3rem; margin-bottom: 2px; }
+.featured-header p { font-size: 13px; margin: 0; }
+.featured-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+.best-seller-rank {
+  position: absolute; top: 10px; right: 10px;
+  background: var(--text); color: white;
+  font-size: 10px; font-weight: 700;
+  padding: 3px 9px; border-radius: 50px;
+  z-index: 2;
+}
+
+/* Section highlight flash when scrolled to via category bar */
+@keyframes sectionPulse {
+  0% { box-shadow: 0 0 0 0 rgba(232,66,10,0.25); }
+  70% { box-shadow: 0 0 0 14px rgba(232,66,10,0); }
+  100% { box-shadow: 0 0 0 0 rgba(232,66,10,0); }
+}
+.section-highlight {
+  animation: sectionPulse 1.2s ease-out;
+  border-radius: var(--radius-lg);
+}
+
+@media (max-width: 900px) {
+  .featured-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 480px) {
+  .featured-grid { grid-template-columns: 1fr; }
+}
   </style>
 </head>
 <body>
@@ -237,8 +291,45 @@
           </select>
         </div>
 
-        <!-- Grid -->
-       <div class="products-grid" id="productsGrid">
+       <!-- New Arrivals -->
+<div class="featured-section" id="new-arrivals">
+  <div class="featured-header">
+    <div class="featured-icon">✨</div>
+    <div>
+      <h2>New Arrivals</h2>
+      <p>Freshly added to the store</p>
+    </div>
+  </div>
+  <div class="featured-grid" id="newArrivalsGrid">
+    <div class="skeleton" style="aspect-ratio:4/3;border-radius:var(--radius-lg)"></div>
+    <div class="skeleton" style="aspect-ratio:4/3;border-radius:var(--radius-lg)"></div>
+    <div class="skeleton" style="aspect-ratio:4/3;border-radius:var(--radius-lg)"></div>
+    <div class="skeleton" style="aspect-ratio:4/3;border-radius:var(--radius-lg)"></div>
+  </div>
+</div>
+
+<!-- Best Sellers -->
+<div class="featured-section" id="best-sellers">
+  <div class="featured-header">
+    <div class="featured-icon">🔥</div>
+    <div>
+      <h2>Best Sellers</h2>
+      <p>Our customers' favourites</p>
+    </div>
+  </div>
+  <div class="featured-grid" id="bestSellersGrid">
+    <div class="skeleton" style="aspect-ratio:4/3;border-radius:var(--radius-lg)"></div>
+    <div class="skeleton" style="aspect-ratio:4/3;border-radius:var(--radius-lg)"></div>
+    <div class="skeleton" style="aspect-ratio:4/3;border-radius:var(--radius-lg)"></div>
+    <div class="skeleton" style="aspect-ratio:4/3;border-radius:var(--radius-lg)"></div>
+  </div>
+</div>
+
+<!-- All Products -->
+<div id="all-products">
+  <h2 style="margin-bottom:20px">All Products</h2>
+  <!-- Grid -->
+  <div class="products-grid" id="productsGrid">
   <div style="border-radius:var(--radius-lg);overflow:hidden;border:1.5px solid var(--border)">
     <div class="skeleton" style="aspect-ratio:4/3"></div>
     <div style="padding:16px;display:flex;flex-direction:column;gap:8px">
@@ -327,6 +418,12 @@
     let allProducts = [];
     let activeCategory = '';
     let inStockOnly = false;
+
+   // Prevent any unintended auto-scroll on page load
+   history.scrollRestoration = 'manual';
+   window.addEventListener('load', () => {
+   if (!window.location.hash) window.scrollTo(0, 0);
+   });
 
     // Read URL params on load
     const urlParams = new URLSearchParams(window.location.search);
@@ -472,9 +569,60 @@
       }
     }
 
-    async function init() {
-      document.getElementById('navbar-root').innerHTML = renderNavbar('products');
-      document.getElementById('footer-root').innerHTML = renderFooter();
+    async function loadNewArrivals() {
+  try {
+    const sorted = [...allProducts].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const top = sorted.slice(0, 8);
+    document.getElementById('newArrivalsGrid').innerHTML = top.length
+      ? top.map(buildProductCard).join('')
+      : '<p style="color:var(--text-light);font-size:13px;grid-column:1/-1">No new arrivals yet.</p>';
+  } catch {
+    document.getElementById('newArrivalsGrid').innerHTML = '';
+  }
+}
+
+async function loadBestSellers() {
+  try {
+    const bestSellers = await ProductsAPI.getBestSellers();
+    const grid = document.getElementById('bestSellersGrid');
+    if (bestSellers.length === 0) {
+      grid.innerHTML = '<p style="color:var(--text-light);font-size:13px;grid-column:1/-1">No sales data yet.</p>';
+      return;
+    }
+    grid.innerHTML = bestSellers.map((p, i) => {
+      const card = buildProductCard(p);
+      // Inject rank badge into the card
+      return card.replace('product-card-img-wrap', `product-card-img-wrap" style="position:relative`)
+        .replace('<div class="product-card-img-wrap"', `<div class="product-card-img-wrap" style="position:relative"><div class="best-seller-rank">#${i + 1} Best Seller</div`);
+    }).join('');
+  } catch {
+    document.getElementById('bestSellersGrid').innerHTML = '';
+  }
+}
+
+function scrollToSection(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  setTimeout(() => {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    el.classList.add('section-highlight');
+    setTimeout(() => el.classList.remove('section-highlight'), 1300);
+  }, 300);
+}
+
+function setupScrollReveal() {
+  const sections = document.querySelectorAll('.featured-section');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) entry.target.classList.add('in-view');
+    });
+  }, { threshold: 0.1 });
+  sections.forEach(s => observer.observe(s));
+}
+
+async function init() {
+  document.getElementById('navbar-root').innerHTML = renderNavbar('products');
+  document.getElementById('footer-root').innerHTML = renderFooter();
 
       // Pre-fill search input if URL has ?search=
       const search = urlParams.get('search');
@@ -489,11 +637,20 @@
         document.getElementById('pageSubtitle').textContent = `Browsing ${activeCategory}`;
       }
 
-      try {
-        allProducts = await ProductsAPI.getAll();
-        buildCategoryList(allProducts);
-        applyFilters();
-      } catch (err) {
+try {
+    allProducts = await ProductsAPI.getAll();
+    buildCategoryList(allProducts);
+    applyFilters();
+    await loadNewArrivals();
+    await loadBestSellers();
+    setupScrollReveal();
+
+    // Scroll to section if URL has a hash
+    if (window.location.hash) {
+      const targetId = window.location.hash.replace('#', '');
+      scrollToSection(targetId);
+    }
+  } catch (err) {
         document.getElementById('productsGrid').innerHTML = `
           <div class="empty-state" style="grid-column:1/-1">
             <div class="empty-state-icon">⚠️</div>
