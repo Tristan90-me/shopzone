@@ -2,11 +2,6 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-<script>
-  if ('scrollRestoration' in history) {
-    history.scrollRestoration = 'manual';
-  }
-</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Products — ShopZone</title>
   <link rel="stylesheet" href="css/style.css">
@@ -224,9 +219,6 @@
 @media (max-width: 480px) {
   .featured-grid { grid-template-columns: 1fr; }
 }
-html.no-smooth-scroll {
-  scroll-behavior: auto !important;
-}
   </style>
 </head>
 <body>
@@ -423,37 +415,20 @@ html.no-smooth-scroll {
   <script src="js/cart.js"></script>
   <script src="js/api.js"></script>
   <script>
-let allProducts = [];
-let activeCategory = '';
-let inStockOnly = false;
+    let allProducts = [];
+    let activeCategory = '';
+    let inStockOnly = false;
 
-// Prevent any unintended auto-scroll on page load/navigation
-if ('scrollRestoration' in history) {
-  history.scrollRestoration = 'manual';
-}
+   // Prevent any unintended auto-scroll on page load
+   history.scrollRestoration = 'manual';
+   window.addEventListener('load', () => {
+   if (!window.location.hash) window.scrollTo(0, 0);
+   });
 
-function forceScrollTopUnlessHash() {
-  if (!window.location.hash) {
-    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-  }
-}
-
-// Cover every way this page can become visible
-document.addEventListener('DOMContentLoaded', forceScrollTopUnlessHash);
-window.addEventListener('load', forceScrollTopUnlessHash);
-window.addEventListener('pageshow', forceScrollTopUnlessHash);
-
-// Read URL params on load
-const urlParams = new URLSearchParams(window.location.search);
-if (urlParams.get('category')) activeCategory = urlParams.get('category');
-if (urlParams.get('search')) document.getElementById('navSearchInput') && (document.getElementById('navSearchInput').value = urlParams.get('search'));
-
-// Ensure no element grabs focus and causes the browser to scroll to it
-window.addEventListener('DOMContentLoaded', () => {
-  if (document.activeElement && document.activeElement !== document.body) {
-    document.activeElement.blur();
-  }
-});
+    // Read URL params on load
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('category')) activeCategory = urlParams.get('category');
+    if (urlParams.get('search')) document.getElementById('navSearchInput') && (document.getElementById('navSearchInput').value = urlParams.get('search'));
 
     function formatCurrency(n) { return '$' + Number(n).toFixed(2); }
 
@@ -671,16 +646,10 @@ try {
     setupScrollReveal();
 
     // Scroll to section if URL has a hash
-     if (!window.location.hash) {
-      scrollToSection(window.location.hash.replace(0, 0));
-} else {
-  document.documentElement.classList.add('no-smooth-scroll');
-  window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-  requestAnimationFrame(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-    setTimeout(() => document.documentElement.classList.remove('no-smooth-scroll'), 50);
-  });
-}
+    if (window.location.hash) {
+      const targetId = window.location.hash.replace('#', '');
+      scrollToSection(targetId);
+    }
   } catch (err) {
         document.getElementById('productsGrid').innerHTML = `
           <div class="empty-state" style="grid-column:1/-1">
