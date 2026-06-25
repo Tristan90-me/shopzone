@@ -415,20 +415,37 @@
   <script src="js/cart.js"></script>
   <script src="js/api.js"></script>
   <script>
-    let allProducts = [];
-    let activeCategory = '';
-    let inStockOnly = false;
+let allProducts = [];
+let activeCategory = '';
+let inStockOnly = false;
 
-   // Prevent any unintended auto-scroll on page load
-   history.scrollRestoration = 'manual';
-   window.addEventListener('load', () => {
-   if (!window.location.hash) window.scrollTo(0, 0);
-   });
+// Prevent any unintended auto-scroll on page load/navigation
+if ('scrollRestoration' in history) {
+  history.scrollRestoration = 'manual';
+}
 
-    // Read URL params on load
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('category')) activeCategory = urlParams.get('category');
-    if (urlParams.get('search')) document.getElementById('navSearchInput') && (document.getElementById('navSearchInput').value = urlParams.get('search'));
+function forceScrollTopUnlessHash() {
+  if (!window.location.hash) {
+    window.scrollTo(0, 0);
+  }
+}
+
+// Cover every way this page can become visible
+document.addEventListener('DOMContentLoaded', forceScrollTopUnlessHash);
+window.addEventListener('load', forceScrollTopUnlessHash);
+window.addEventListener('pageshow', forceScrollTopUnlessHash);
+
+// Read URL params on load
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('category')) activeCategory = urlParams.get('category');
+if (urlParams.get('search')) document.getElementById('navSearchInput') && (document.getElementById('navSearchInput').value = urlParams.get('search'));
+
+// Ensure no element grabs focus and causes the browser to scroll to it
+window.addEventListener('DOMContentLoaded', () => {
+  if (document.activeElement && document.activeElement !== document.body) {
+    document.activeElement.blur();
+  }
+});
 
     function formatCurrency(n) { return '$' + Number(n).toFixed(2); }
 
@@ -646,10 +663,7 @@ try {
     setupScrollReveal();
 
     // Scroll to section if URL has a hash
-    if (window.location.hash) {
-      const targetId = window.location.hash.replace('#', '');
-      scrollToSection(targetId);
-    }
+      if (!window.location.hash) requestAnimationFrame(() => window.scrollTo(0, 0));
   } catch (err) {
         document.getElementById('productsGrid').innerHTML = `
           <div class="empty-state" style="grid-column:1/-1">
