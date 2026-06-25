@@ -108,6 +108,11 @@ exports.getBestSellers = async (req, res) => {
     const topSellers = await Order.aggregate([
       { $unwind: '$items' },
       {
+        $match: {
+          'items.product': { $exists: true, $ne: null },
+        },
+      },
+      {
         $group: {
           _id: '$items.product',
           totalSold: { $sum: '$items.quantity' },
@@ -117,19 +122,23 @@ exports.getBestSellers = async (req, res) => {
       { $limit: 8 },
     ]);
 
-    const productIds = topSellers.map(t => t._id).filter(Boolean);
+    if (topSellers.length === 0) {
+      return res.json([]);
+    }
+
+    const productIds = topSellers.map(t => t._id);
     const products = await Product.find({ _id: { $in: productIds } });
 
-    // Preserve sales-rank order and attach totalSold
     const ranked = topSellers
       .map(t => {
-        const product = products.find(p => p._id.toString() === t._id?.toString());
+        const product = products.find(p => p._id.toString() === t._id.toString());
         return product ? { ...product.toObject(), totalSold: t.totalSold } : null;
       })
       .filter(Boolean);
 
     res.json(ranked);
   } catch (err) {
-    res.status(500).json({ message: 'Server error' });
+    console.error('Best sellers error:', err);
+    res.status(500).json({ message: 'Server error', error: err.message });
   }
 };
