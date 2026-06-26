@@ -104,12 +104,13 @@ exports.deleteProduct = async (req, res) => {
 exports.getBestSellers = async (req, res) => {
   try {
     const Order = require('../models/Order');
+    const mongoose = require('mongoose');
 
     const topSellers = await Order.aggregate([
       { $unwind: '$items' },
       {
         $match: {
-          'items.product': { $exists: true, $ne: null },
+          'items.product': { $exists: true, $type: 'objectId' },
         },
       },
       {
@@ -122,23 +123,21 @@ exports.getBestSellers = async (req, res) => {
       { $limit: 8 },
     ]);
 
-    if (topSellers.length === 0) {
+    if (!topSellers || topSellers.length === 0) {
       return res.json([]);
     }
 
-    const productIds = topSellers.map(t => t._id);
-    const products = await Product.find({ _id: { $in: productIds } });
+    const results = [];
+    for (const seller of topSellers) {
+      const product = await Product.findById(seller._id);
+      if (product) {
+        results.push({ ...product.toObject(), totalSold: seller.totalSold });
+      }
+    }
 
-    const ranked = topSellers
-      .map(t => {
-        const product = products.find(p => p._id.toString() === t._id.toString());
-        return product ? { ...product.toObject(), totalSold: t.totalSold } : null;
-      })
-      .filter(Boolean);
-
-    res.json(ranked);
+    res.json(results);
   } catch (err) {
-    console.error('Best sellers error:', err);
+    console.error('Best sellers error:', err.message, err.stack);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 };
