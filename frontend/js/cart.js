@@ -129,7 +129,7 @@ function renderFooter() {
           <div class="footer-heading">Info</div>
           <ul class="footer-links">
             <li><a href="/help-center.html">Contact Us</a></li>
-            <li><a href="">Created by Team InnovateX</a></li>
+            <li><a href="#" class="Team">Created By Team InnovateX</a></li>
           </ul>
         </div>
       </div>
