@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /confirmation.html
+
+Sitemap: https://www.baabahanson.com/sitemap.xml
