@@ -31,23 +31,18 @@ exports.createProduct = async (req, res) => {
   try {
     const { name, price, description, category, stock } = req.body;
 
-    // Cloudinary gives us req.file.path as the full URL
-    // and req.file.filename as the public_id
-    const image = req.file ? req.file.path : '';
-    const imagePublicId = req.file ? req.file.filename : '';
+    const images = req.files ? req.files.map(f => f.path) : [];
+    const imagePublicIds = req.files ? req.files.map(f => f.filename) : [];
+    const image = images[0] || '';
 
     const product = await Product.create({
-      name,
-      price,
-      description,
-      category,
-      stock,
-      image,
-      imagePublicId,
+      name, price, description, category, stock,
+      image, images, imagePublicIds,
     });
 
     res.status(201).json(product);
   } catch (err) {
+    console.error('Create product error:', err);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -58,26 +53,51 @@ exports.updateProduct = async (req, res) => {
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ message: 'Product not found' });
 
-    const updates = { ...req.body };
+    const updates = {
+      name: req.body.name,
+      price: req.body.price,
+      description: req.body.description,
+      category: req.body.category,
+      stock: req.body.stock,
+    };
 
-    // If a new image was uploaded
-    if (req.file) {
-      // Delete old image from Cloudinary if it exists
-      if (product.imagePublicId) {
-        await cloudinary.uploader.destroy(product.imagePublicId);
-      }
-      updates.image = req.file.path;
-      updates.imagePublicId = req.file.filename;
+    // Which existing images to keep (sent from frontend as JSON array)
+    let keptImages = [];
+    let keptPublicIds = [];
+    if (req.body.keptImages) {
+      try {
+        keptImages = JSON.parse(req.body.keptImages);
+        keptPublicIds = JSON.parse(req.body.keptPublicIds || '[]');
+      } catch {}
     }
 
+    // Delete removed images from Cloudinary
+    const removedPublicIds = product.imagePublicIds.filter(
+      id => !keptPublicIds.includes(id)
+    );
+    for (const pid of removedPublicIds) {
+      try { await cloudinary.uploader.destroy(pid); } catch {}
+    }
+
+    // New uploaded images
+    const newImages = req.files ? req.files.map(f => f.path) : [];
+    const newPublicIds = req.files ? req.files.map(f => f.filename) : [];
+
+    // Merge kept + new
+    const allImages = [...keptImages, ...newImages];
+    const allPublicIds = [...keptPublicIds, ...newPublicIds];
+
+    updates.images = allImages;
+    updates.imagePublicIds = allPublicIds;
+    updates.image = allImages[0] || '';
+
     const updated = await Product.findByIdAndUpdate(
-      req.params.id,
-      updates,
-      { new: true }
+      req.params.id, updates, { new: true }
     );
 
     res.json(updated);
   } catch (err) {
+    console.error('Update product error:', err);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -88,9 +108,13 @@ exports.deleteProduct = async (req, res) => {
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ message: 'Product not found' });
 
-    // Delete image from Cloudinary if it exists
+    // Delete all images from Cloudinary
+    for (const pid of product.imagePublicIds || []) {
+      try { await cloudinary.uploader.destroy(pid); } catch {}
+    }
+    // Also try legacy single image
     if (product.imagePublicId) {
-      await cloudinary.uploader.destroy(product.imagePublicId);
+      try { await cloudinary.uploader.destroy(product.imagePublicId); } catch {}
     }
 
     await product.deleteOne();
@@ -100,7 +124,7 @@ exports.deleteProduct = async (req, res) => {
   }
 };
 
-// GET /api/products/best-sellers (public)
+// GET /api/products/best-sellers
 exports.getBestSellers = async (req, res) => {
   try {
     const Order = require('../models/Order');
@@ -108,36 +132,23 @@ exports.getBestSellers = async (req, res) => {
 
     const topSellers = await Order.aggregate([
       { $unwind: '$items' },
-      {
-        $match: {
-          'items.product': { $exists: true, $type: 'objectId' },
-        },
-      },
-      {
-        $group: {
-          _id: '$items.product',
-          totalSold: { $sum: '$items.quantity' },
-        },
-      },
+      { $match: { 'items.product': { $exists: true, $type: 'objectId' } } },
+      { $group: { _id: '$items.product', totalSold: { $sum: '$items.quantity' } } },
       { $sort: { totalSold: -1 } },
       { $limit: 8 },
     ]);
 
-    if (!topSellers || topSellers.length === 0) {
-      return res.json([]);
-    }
+    if (!topSellers || topSellers.length === 0) return res.json([]);
 
     const results = [];
     for (const seller of topSellers) {
       const product = await Product.findById(seller._id);
-      if (product) {
-        results.push({ ...product.toObject(), totalSold: seller.totalSold });
-      }
+      if (product) results.push({ ...product.toObject(), totalSold: seller.totalSold });
     }
 
     res.json(results);
   } catch (err) {
-    console.error('Best sellers error:', err.message, err.stack);
+    console.error('Best sellers error:', err.message);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 };

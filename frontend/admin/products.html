@@ -125,21 +125,37 @@
       <div class="modal-body">
         <input type="hidden" id="editId">
 
-        <!-- Image upload -->
-        <div class="form-group">
-          <label class="form-label">Product Image</label>
-          <div class="image-upload-area" id="uploadArea">
-            <input type="file" id="imageFile" accept="image/*" onchange="previewImage(event)">
-            <div id="uploadContent">
-              <div class="upload-icon">📷</div>
-              <div class="upload-text">
-                <strong>Click to upload</strong> or drag and drop<br>
-                <span style="font-size:11px;color:var(--text-light)">PNG, JPG, WEBP up to 5MB</span>
-              </div>
-            </div>
-            <img id="imgPreview" class="img-preview" style="display:none">
-          </div>
-        </div>
+        <!-- Multi-image upload -->
+<div class="form-group">
+  <label class="form-label">
+    Product Images
+    <span style="font-weight:400;text-transform:none;color:var(--text-light)">
+      (up to 10 — first image is the main photo)
+    </span>
+  </label>
+
+  <!-- Existing images (shown when editing) -->
+  <div id="existingImagesRow" style="display:none;margin-bottom:12px">
+    <div style="font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">Current Images</div>
+    <div id="existingImagesGrid" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+  </div>
+
+  <!-- New upload area -->
+  <div class="image-upload-area" id="uploadArea">
+    <input type="file" id="imageFiles" accept="image/*" multiple onchange="previewImages(event)">
+    <div id="uploadContent">
+      <div class="upload-icon">📷</div>
+      <div class="upload-text">
+        <strong>Click to upload</strong> or drag and drop<br>
+        <span style="font-size:11px;color:var(--text-light)">Select up to 10 images — PNG, JPG, WEBP</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- New image previews -->
+  <div id="newImagesGrid" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px"></div>
+  <div id="imageCountNote" style="font-size:12px;color:var(--text-muted);margin-top:6px"></div>
+</div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
           <div class="form-group" style="grid-column:1/-1">
@@ -204,6 +220,9 @@
     const API ='https://api.baabahanson.com/api';;
     let allProducts = [];
     let deleteTargetId = null;
+    let keptImages = [];
+    let keptPublicIds = [];
+    let newFilePreviews = [];
 
     function authHeaders() {
       return { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` };
@@ -348,48 +367,89 @@
     }
 
     /* ── Modal ── */
-    function openModal() {
-      document.getElementById('modalTitle').textContent = 'Add Product';
-      document.getElementById('editId').value = '';
-      document.getElementById('productName').value = '';
-      document.getElementById('productPrice').value = '';
-      document.getElementById('productStock').value = '';
-      document.getElementById('productCategory').value = '';
-      document.getElementById('productDesc').value = '';
-      document.getElementById('imgPreview').style.display = 'none';
-      document.getElementById('uploadContent').style.display = 'block';
-      document.getElementById('imageFile').value = '';
-      document.getElementById('saveBtn').textContent = 'Save Product';
-      document.getElementById('modalOverlay').classList.add('open');
+function openModal() {
+  document.getElementById('modalTitle').textContent = 'Add Product';
+  document.getElementById('editId').value = '';
+  document.getElementById('productName').value = '';
+  document.getElementById('productPrice').value = '';
+  document.getElementById('productStock').value = '';
+  document.getElementById('productCategory').value = '';
+  document.getElementById('productDesc').value = '';
+  document.getElementById('imageFiles').value = '';
+  document.getElementById('newImagesGrid').innerHTML = '';
+  document.getElementById('imageCountNote').textContent = '';
+  document.getElementById('existingImagesRow').style.display = 'none';
+  document.getElementById('existingImagesGrid').innerHTML = '';
+  keptImages = [];
+  keptPublicIds = [];
+  newFilePreviews = [];
+  document.getElementById('saveBtn').textContent = 'Save Product';
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+async function saveProduct() {
+  const id = document.getElementById('editId').value;
+  const name = document.getElementById('productName').value.trim();
+  const price = document.getElementById('productPrice').value;
+  const stock = document.getElementById('productStock').value;
+  const category = document.getElementById('productCategory').value.trim();
+  const description = document.getElementById('productDesc').value.trim();
+
+  if (!name || !price || stock === '' || !category) {
+    showToast('Please fill in all required fields', 'error');
+    return;
+  }
+
+  const totalImages = keptImages.length + newFilePreviews.length;
+  if (totalImages === 0 && !id) {
+    // Allow no images — just warn
+  }
+
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> Saving...';
+
+  try {
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('price', price);
+    formData.append('stock', stock);
+    formData.append('category', category);
+    formData.append('description', description);
+
+    // Kept existing images (for edit)
+    formData.append('keptImages', JSON.stringify(keptImages));
+    formData.append('keptPublicIds', JSON.stringify(keptPublicIds));
+
+    // New files
+    const fileInput = document.getElementById('imageFiles');
+    if (fileInput.files.length > 0) {
+      Array.from(fileInput.files).forEach(file => {
+        formData.append('images', file);
+      });
     }
 
-    function openEditModal(id) {
-      const p = allProducts.find(p => p._id === id);
-      if (!p) return;
+    const url = id ? `${API}/products/${id}` : `${API}/products`;
+    const method = id ? 'PUT' : 'POST';
 
-      document.getElementById('modalTitle').textContent = 'Edit Product';
-      document.getElementById('editId').value = p._id;
-      document.getElementById('productName').value = p.name;
-      document.getElementById('productPrice').value = p.price;
-      document.getElementById('productStock').value = p.stock;
-      document.getElementById('productCategory').value = p.category;
-      document.getElementById('productDesc').value = p.description || '';
+    const res = await fetch(url, {
+      method,
+      headers: authHeaders(),
+      body: formData,
+    });
 
-      // Show existing image
-      if (p.image) {
-        const preview = document.getElementById('imgPreview');
-        preview.src = p.image;
-        preview.style.display = 'block';
-        document.getElementById('uploadContent').style.display = 'none';
-      } else {
-        document.getElementById('imgPreview').style.display = 'none';
-        document.getElementById('uploadContent').style.display = 'block';
-      }
+    if (!res.ok) throw new Error('Save failed');
 
-      document.getElementById('imageFile').value = '';
-      document.getElementById('saveBtn').textContent = 'Update Product';
-      document.getElementById('modalOverlay').classList.add('open');
-    }
+    showToast(id ? 'Product updated!' : 'Product added!', 'success');
+    closeModal();
+    await loadProducts();
+  } catch {
+    showToast('Failed to save product', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = document.getElementById('editId').value ? 'Update Product' : 'Save Product';
+  }
+}
 
     function closeModal() {
       document.getElementById('modalOverlay').classList.remove('open');
@@ -399,68 +459,120 @@
       if (e.target === document.getElementById('modalOverlay')) closeModal();
     }
 
-    function previewImage(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        const preview = document.getElementById('imgPreview');
-        preview.src = ev.target.result;
-        preview.style.display = 'block';
-        document.getElementById('uploadContent').style.display = 'none';
-      };
-      reader.readAsDataURL(file);
-    }
+function previewImages(e) {
+  const files = Array.from(e.target.files);
+  const remaining = 10 - keptImages.length;
+  const allowed = files.slice(0, remaining);
+  newFilePreviews = allowed.map(f => ({
+    file: f,
+    url: URL.createObjectURL(f),
+  }));
+  renderNewPreviews();
+  updateImageCount();
+}
 
+function renderNewPreviews() {
+  const grid = document.getElementById('newImagesGrid');
+  if (newFilePreviews.length === 0) { grid.innerHTML = ''; return; }
+  grid.innerHTML = newFilePreviews.map((p, i) => `
+    <div class="img-thumb-wrap">
+      <img class="img-thumb" src="${p.url}" alt="New ${i+1}">
+      ${keptImages.length === 0 && i === 0 ? '<div class="main-badge">Main</div>' : ''}
+      <button class="remove-img" onclick="removeNewPreview(${i})" title="Remove">✕</button>
+    </div>`).join('');
+}
+
+function removeNewPreview(index) {
+  newFilePreviews.splice(index, 1);
+  renderNewPreviews();
+  updateImageCount();
+}
+
+function renderExistingImages(images, publicIds) {
+  keptImages = [...images];
+  keptPublicIds = [...publicIds];
+  const row = document.getElementById('existingImagesRow');
+  const grid = document.getElementById('existingImagesGrid');
+  if (keptImages.length === 0) { row.style.display = 'none'; return; }
+  row.style.display = 'block';
+  grid.innerHTML = keptImages.map((url, i) => `
+    <div class="img-thumb-wrap" id="existing-${i}">
+      <img class="img-thumb" src="${url}" alt="Image ${i+1}">
+      ${i === 0 ? '<div class="main-badge">Main</div>' : ''}
+      <button class="remove-img" onclick="removeExistingImage(${i})" title="Remove">✕</button>
+    </div>`).join('');
+  updateImageCount();
+}
+
+function removeExistingImage(index) {
+  keptImages.splice(index, 1);
+  keptPublicIds.splice(index, 1);
+  renderExistingImages(keptImages, keptPublicIds);
+  updateImageCount();
+}
+
+function updateImageCount() {
+  const total = keptImages.length + newFilePreviews.length;
+  const note = document.getElementById('imageCountNote');
+  if (total === 0) { note.textContent = ''; return; }
+  note.textContent = `${total} image${total !== 1 ? 's' : ''} selected${total === 10 ? ' (maximum reached)' : ''}`;
+}
     /* ── Save product ── */
-    async function saveProduct() {
-      const id = document.getElementById('editId').value;
-      const name = document.getElementById('productName').value.trim();
-      const price = document.getElementById('productPrice').value;
-      const stock = document.getElementById('productStock').value;
-      const category = document.getElementById('productCategory').value.trim();
-      const description = document.getElementById('productDesc').value.trim();
-      const imageFile = document.getElementById('imageFile').files[0];
+async function saveProduct() {
+  const id = document.getElementById('editId').value;
+  const name = document.getElementById('productName').value.trim();
+  const price = document.getElementById('productPrice').value;
+  const stock = document.getElementById('productStock').value;
+  const category = document.getElementById('productCategory').value.trim();
+  const description = document.getElementById('productDesc').value.trim();
 
-      if (!name || !price || stock === '' || !category) {
-        showToast('Please fill in all required fields', 'error');
-        return;
-      }
+  if (!name || !price || stock === '' || !category) {
+    showToast('Please fill in all required fields', 'error');
+    return;
+  }
 
-      const btn = document.getElementById('saveBtn');
-      btn.disabled = true;
-      btn.innerHTML = '<div class="spinner"></div> Saving...';
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> Saving...';
 
-      try {
-        const formData = new FormData();
-        formData.append('name', name);
-        formData.append('price', price);
-        formData.append('stock', stock);
-        formData.append('category', category);
-        formData.append('description', description);
-        if (imageFile) formData.append('image', imageFile);
+  try {
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('price', price);
+    formData.append('stock', stock);
+    formData.append('category', category);
+    formData.append('description', description);
+    formData.append('keptImages', JSON.stringify(keptImages));
+    formData.append('keptPublicIds', JSON.stringify(keptPublicIds));
 
-        const url = id ? `${API}/products/${id}` : `${API}/products`;
-        const method = id ? 'PUT' : 'POST';
-
-        const res = await fetch(url, {
-          method,
-          headers: authHeaders(),
-          body: formData,
-        });
-
-        if (!res.ok) throw new Error('Save failed');
-
-        showToast(id ? 'Product updated!' : 'Product added!', 'success');
-        closeModal();
-        await loadProducts();
-      } catch {
-        showToast('Failed to save product', 'error');
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = document.getElementById('editId').value ? 'Update Product' : 'Save Product';
-      }
+    const fileInput = document.getElementById('imageFiles');
+    if (fileInput.files.length > 0) {
+      Array.from(fileInput.files).forEach(file => {
+        formData.append('images', file);
+      });
     }
+
+    const url = id ? `${API}/products/${id}` : `${API}/products`;
+    const method = id ? 'PUT' : 'POST';
+
+    const res = await fetch(url, {
+      method,
+      headers: authHeaders(),
+      body: formData,
+    });
+
+    if (!res.ok) throw new Error('Save failed');
+
+    showToast(id ? 'Product updated!' : 'Product added!', 'success');
+    closeModal();
+    await loadProducts();
+  } catch {
+    showToast('Failed to save product', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = document.getElementById('editId').value ? 'Update Product' : 'Save Product';
+  }
+}
 
     /* ── Delete ── */
     function openDeleteModal(id, name) {

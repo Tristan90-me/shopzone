@@ -212,6 +212,155 @@
       border-top: 1px solid var(--border);
     }
 
+    /* ── Image gallery ── */
+.gallery-wrap {
+  position: sticky;
+  top: calc(var(--nav-h) + 24px);
+}
+.main-img-container {
+  position: relative;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  border: 1.5px solid var(--border);
+  background: var(--bg-subtle);
+  cursor: zoom-in;
+  aspect-ratio: 1;
+}
+.main-img-container img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+  display: block;
+}
+.main-img-container:hover img {
+  transform: scale(1.03);
+}
+.zoom-hint {
+  position: absolute;
+  bottom: 12px; right: 12px;
+  background: rgba(0,0,0,0.55);
+  color: white;
+  font-size: 11px; font-weight: 500;
+  padding: 5px 10px;
+  border-radius: 20px;
+  display: flex; align-items: center; gap: 5px;
+  backdrop-filter: blur(4px);
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.main-img-container:hover .zoom-hint { opacity: 0; }
+
+/* ── Thumbnail carousel ── */
+.thumb-carousel {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.thumb-carousel::-webkit-scrollbar { height: 4px; }
+.thumb-carousel::-webkit-scrollbar-track { background: transparent; }
+.thumb-carousel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.thumb {
+  flex-shrink: 0;
+  width: 72px; height: 72px;
+  border-radius: var(--radius);
+  border: 2px solid var(--border);
+  object-fit: cover;
+  cursor: pointer;
+  transition: all var(--transition);
+  opacity: 0.7;
+}
+.thumb:hover { opacity: 1; border-color: var(--border-strong); }
+.thumb.active { border-color: var(--accent); opacity: 1; }
+.thumb-more {
+  flex-shrink: 0;
+  width: 72px; height: 72px;
+  border-radius: var(--radius);
+  border: 2px dashed var(--border);
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 2px;
+  cursor: pointer;
+  background: var(--bg-subtle);
+  font-size: 13px; font-weight: 700;
+  color: var(--text-muted);
+  transition: all var(--transition);
+}
+.thumb-more:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+.thumb-more small { font-size: 9px; font-weight: 500; }
+
+/* ── Lightbox / fullview ── */
+.lightbox {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.92);
+  z-index: 1000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  animation: fadeIn 0.2s ease;
+}
+.lightbox.open { display: flex; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.lightbox-main {
+  max-width: 860px; max-height: 70vh;
+  border-radius: var(--radius-lg);
+  object-fit: contain;
+  transition: opacity 0.2s ease;
+}
+.lightbox-close {
+  position: absolute;
+  top: 20px; right: 20px;
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.12);
+  color: white; border: none;
+  font-size: 20px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background var(--transition);
+}
+.lightbox-close:hover { background: rgba(255,255,255,0.25); }
+.lightbox-nav {
+  position: absolute;
+  top: 50%; transform: translateY(-50%);
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.12);
+  color: white; border: none;
+  font-size: 22px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background var(--transition);
+}
+.lightbox-nav:hover { background: rgba(255,255,255,0.25); }
+.lightbox-prev { left: 20px; }
+.lightbox-next { right: 20px; }
+.lightbox-thumbs {
+  display: flex; gap: 8px;
+  overflow-x: auto; max-width: 100%;
+  padding: 4px;
+}
+.lightbox-thumb {
+  flex-shrink: 0;
+  width: 56px; height: 56px;
+  border-radius: 6px;
+  object-fit: cover;
+  cursor: pointer;
+  border: 2px solid transparent;
+  opacity: 0.6;
+  transition: all var(--transition);
+}
+.lightbox-thumb.active { border-color: white; opacity: 1; }
+.lightbox-counter {
+  color: rgba(255,255,255,0.6);
+  font-size: 13px;
+}
+
     /* Success animation on add */
     @keyframes popIn {
       0% { transform: scale(1); }
@@ -330,81 +479,131 @@
       }, 2000);
     }
 
-    function renderProduct(p) {
-      currentProduct = p;
-      const inStock = p.stock > 0;
-      const imgSrc = p.image ? p.image : null;
+let galleryImages = [];
+let galleryIndex = 0;
 
-      document.title = `${p.name} — Baaba Hanson`;
-      document.getElementById('breadcrumbName').textContent = p.name;
+function renderProduct(p) {
+  currentProduct = p;
+  const inStock = p.stock > 0;
 
-      document.getElementById('productLayout').innerHTML = `
-        <!-- Image -->
-        <div class="product-img-wrap">
-          ${imgSrc
-            ? `<img class="product-main-img" src="${imgSrc}" alt="${p.name}"
-                onerror="this.outerHTML='<div class=\\'product-img-placeholder\\'>📦</div>'">`
-            : `<div class="product-img-placeholder">📦</div>`}
+  // Build images array — support both old single and new multi
+  galleryImages = p.images && p.images.length > 0
+    ? p.images
+    : (p.image ? [p.image] : []);
+
+  if (galleryImages.length === 0) galleryImages = [''];
+  galleryIndex = 0;
+
+  document.title = `${p.name} — Baaba Hanson`;
+  document.getElementById('breadcrumbName').textContent = p.name;
+
+  document.getElementById('productLayout').innerHTML = `
+    <!-- Gallery -->
+    <div class="gallery-wrap" id="galleryWrap">
+      <div class="main-img-container" id="mainImgContainer" onclick="openLightbox(0)">
+        ${galleryImages[0]
+          ? `<img id="mainImg" src="${galleryImages[0]}" alt="${p.name}"
+              onerror="this.style.background='var(--bg-subtle)'">`
+          : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:4rem">📦</div>`}
+        <div class="zoom-hint">
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+          Click for full view
         </div>
+      </div>
 
-        <!-- Info -->
-        <div class="product-info">
-          <a href="products.html?category=${encodeURIComponent(p.category)}"
-            class="product-category-link">
-            ← ${p.category}
-          </a>
+      <!-- Thumbnail carousel -->
+      ${galleryImages.length > 1 ? `
+        <div class="thumb-carousel" id="thumbCarousel">
+          ${galleryImages.slice(0, 6).map((img, i) => `
+            <img class="thumb ${i === 0 ? 'active' : ''}"
+              src="${img}" alt="View ${i+1}"
+              onclick="switchImage(${i})"
+              onerror="this.style.display='none'">`).join('')}
+          ${galleryImages.length > 6 ? `
+            <div class="thumb-more" onclick="openLightbox(6)">
+              +${galleryImages.length - 6}
+              <small>more</small>
+            </div>` : ''}
+        </div>` : ''}
+    </div>
 
-          <h1 class="product-title">${p.name}</h1>
+    <!-- Info -->
+    <div class="product-info">
+      <a href="products.html?category=${encodeURIComponent(p.category)}"
+        class="product-category-link">← ${p.category}</a>
 
-          <div class="product-price-row">
-            <div class="product-price">${formatCurrency(p.price)}</div>
-            ${getStockBadge(p.stock)}
-          </div>
+      <h1 class="product-title">${p.name}</h1>
 
-          <div class="product-divider"></div>
+      <div class="product-price-row">
+        <div class="product-price">${formatCurrency(p.price)}</div>
+        ${getStockBadge(p.stock)}
+      </div>
 
-          <p class="product-desc">${p.description || 'No description available for this product.'}</p>
+      <div class="product-divider"></div>
 
-          ${inStock ? `
-            <div class="qty-label">Quantity</div>
-            <div class="qty-control">
-              <button class="qty-btn" id="qtyDecrease" onclick="changeQty(-1)" disabled>−</button>
-              <div class="qty-val" id="qtyDisplay">1</div>
-              <button class="qty-btn" id="qtyIncrease" onclick="changeQty(1)">+</button>
-            </div>
-          ` : ''}
+      <p class="product-desc">${p.description || 'No description available for this product.'}</p>
 
-          <div class="product-actions">
-            <button class="btn-add-cart" id="addToCartBtn"
-              onclick="handleAddToCart()"
-              ${!inStock ? 'disabled' : ''}>
-              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-              ${inStock ? 'Add to Cart' : 'Out of Stock'}
-            </button>
-            <button class="btn-go-cart" onclick="window.location='cart.html'">
-              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-              View Cart
-            </button>
-          </div>
+      ${inStock ? `
+        <div class="qty-label">Quantity</div>
+        <div class="qty-control">
+          <button class="qty-btn" id="qtyDecrease" onclick="changeQty(-1)" disabled>−</button>
+          <div class="qty-val" id="qtyDisplay">1</div>
+          <button class="qty-btn" id="qtyIncrease" onclick="changeQty(1)">+</button>
+        </div>
+      ` : ''}
 
-          <div class="product-meta">
-            <div class="meta-row">
-              <span class="meta-label">Category</span>
-              <span class="meta-val">${p.category}</span>
-            </div>
-            <div class="meta-row">
-              <span class="meta-label">Availability</span>
-              <span class="meta-val">${p.stock > 0 ? 'In Stock' : 'Out of Stock'}</span>
-            </div>
-            <div class="meta-row">
-              <span class="meta-label">Stock</span>
-              <span class="meta-val">${p.stock} units</span>
-            </div>
-          </div>
-        </div>`;
+      <div class="product-actions">
+        <button class="btn-add-cart" id="addToCartBtn"
+          onclick="handleAddToCart()"
+          ${!inStock ? 'disabled' : ''}>
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          ${inStock ? 'Add to Cart' : 'Out of Stock'}
+        </button>
+        <button class="btn-go-cart" onclick="window.location='cart.html'">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          View Cart
+        </button>
+      </div>
 
-      if (inStock) updateQtyButtons();
-    }
+      <div class="product-meta">
+        <div class="meta-row">
+          <span class="meta-label">Category</span>
+          <span class="meta-val">${p.category}</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">Availability</span>
+          <span class="meta-val">${p.stock > 0 ? 'In Stock' : 'Out of Stock'}</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">Stock</span>
+          <span class="meta-val">${p.stock} units</span>
+        </div>
+        ${galleryImages.filter(Boolean).length > 1 ? `
+        <div class="meta-row">
+          <span class="meta-label">Photos</span>
+          <span class="meta-val">${galleryImages.filter(Boolean).length} images</span>
+        </div>` : ''}
+      </div>
+    </div>`;
+
+  if (inStock) updateQtyButtons();
+}
+
+// Switch main image from thumbnail click
+function switchImage(index) {
+  galleryIndex = index;
+  const mainImg = document.getElementById('mainImg');
+  if (mainImg) {
+    mainImg.style.opacity = '0';
+    setTimeout(() => {
+      mainImg.src = galleryImages[index];
+      mainImg.style.opacity = '1';
+    }, 150);
+  }
+  document.querySelectorAll('.thumb').forEach((t, i) => {
+    t.classList.toggle('active', i === index);
+  });
+}
 
     function buildRelatedCard(p) {
       const inStock = p.stock > 0;
@@ -470,6 +669,80 @@
     }
 
     init();
+    
+    // ── Lightbox ──
+function openLightbox(startIndex = 0) {
+  const validImages = galleryImages.filter(Boolean);
+  if (validImages.length === 0) return;
+
+  galleryIndex = Math.min(startIndex, validImages.length - 1);
+  document.getElementById('lightbox').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  renderLightbox(validImages);
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function handleLightboxClick(e) {
+  if (e.target === document.getElementById('lightbox')) closeLightbox();
+}
+
+function renderLightbox(images) {
+  const main = document.getElementById('lightboxMain');
+  const counter = document.getElementById('lightboxCounter');
+  const thumbs = document.getElementById('lightboxThumbs');
+
+  main.style.opacity = '0';
+  setTimeout(() => {
+    main.src = images[galleryIndex];
+    main.style.opacity = '1';
+  }, 100);
+
+  counter.textContent = `${galleryIndex + 1} / ${images.length}`;
+
+  thumbs.innerHTML = images.map((img, i) => `
+    <img class="lightbox-thumb ${i === galleryIndex ? 'active' : ''}"
+      src="${img}" alt="Image ${i+1}"
+      onclick="lightboxGoTo(${i})">`).join('');
+}
+
+function lightboxGoTo(index) {
+  const validImages = galleryImages.filter(Boolean);
+  galleryIndex = index;
+  renderLightbox(validImages);
+}
+
+function lightboxNav(direction) {
+  const validImages = galleryImages.filter(Boolean);
+  galleryIndex = (galleryIndex + direction + validImages.length) % validImages.length;
+  renderLightbox(validImages);
+  // Sync thumbnail on main page too
+  switchImage(galleryIndex);
+}
+
+// Keyboard navigation
+document.addEventListener('keydown', (e) => {
+  const lb = document.getElementById('lightbox');
+  if (!lb?.classList.contains('open')) return;
+  if (e.key === 'ArrowRight') lightboxNav(1);
+  if (e.key === 'ArrowLeft') lightboxNav(-1);
+  if (e.key === 'Escape') closeLightbox();
+});
+
   </script>
+
+  <!-- Lightbox -->
+<div class="lightbox" id="lightbox" onclick="handleLightboxClick(event)">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <button class="lightbox-nav lightbox-prev" onclick="lightboxNav(-1)">‹</button>
+  <button class="lightbox-nav lightbox-next" onclick="lightboxNav(1)">›</button>
+  <img class="lightbox-main" id="lightboxMain" src="" alt="">
+  <div class="lightbox-counter" id="lightboxCounter"></div>
+  <div class="lightbox-thumbs" id="lightboxThumbs"></div>
+</div>
+
 </body>
 </html>

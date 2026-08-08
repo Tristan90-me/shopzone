@@ -14,8 +14,8 @@ const {
 router.get('/', getProducts);
 router.get('/best-sellers', getBestSellers);
 router.get('/:id', getProduct);
-router.post('/', auth, upload.single('image'), createProduct);
-router.put('/:id', auth, upload.single('image'), updateProduct);
+router.post('/', auth, upload.array('images', 10), createProduct);
+router.put('/:id', auth, upload.array('images', 10), updateProduct);
 router.delete('/:id', auth, deleteProduct);
 
 module.exports = router;
