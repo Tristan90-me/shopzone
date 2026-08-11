@@ -46,6 +46,7 @@
       padding: 20px 0;
       border-bottom: 1px solid var(--border);
       animation: fadeIn 0.25s ease;
+      width: 100%;
     }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -332,40 +333,45 @@
     }
 
     function buildCartItem(item) {
-      const imgSrc = item.image ? item.image : null;
-      const itemTotal = item.price * item.quantity;
+  const imgSrc = item.image ? item.image : null;
+  const itemTotal = item.price * item.quantity;
+  const productUrl = `product.html?id=${item._id}`;
+  const placeholder = `<div class="cart-item-img-placeholder" onclick="window.location='${productUrl}'">📦</div>`;
 
-      return `
-        <div class="cart-item" id="cartItem-${item._id}">
-          <!-- Image -->
-          ${imgSrc
-            ? `<img class="cart-item-img" src="${imgSrc}" alt="${item.name}"
-                onclick="window.location='product.html?id=${item._id}'"
-                onerror="this.outerHTML='<div class=\\'cart-item-img-placeholder\\' onclick=\\'window.location=\\"product.html?id=${item._id}\\"\\'>📦</div>'">`
-            : `<div class="cart-item-img-placeholder" onclick="window.location='product.html?id=${item._id}'">📦</div>`}
+  const imgHtml = imgSrc
+    ? `<img class="cart-item-img" src="${imgSrc}" alt="${item.name}"
+          onclick="window.location='${productUrl}'"
+          onerror="this.parentNode.innerHTML='${placeholder.replace(/'/g, "&#39;")}'">`
+    : placeholder;
 
-          <!-- Info -->
-          <div class="cart-item-info">
-            <div class="cart-item-category">${item.category}</div>
-            <div class="cart-item-name" onclick="window.location='product.html?id=${item._id}'">${item.name}</div>
-            <div class="cart-item-unit-price">${formatCurrency(item.price)} each</div>
-          </div>
+  return `
+    <div class="cart-item" id="cartItem-${item._id}">
 
-          <!-- Right side -->
-          <div class="cart-item-right">
-            <div class="cart-item-total">${formatCurrency(itemTotal)}</div>
-            <div class="qty-control-sm">
-              <button class="qty-btn-sm" onclick="updateQty('${item._id}', ${item.quantity - 1})">−</button>
-              <div class="qty-val-sm">${item.quantity}</div>
-              <button class="qty-btn-sm" onclick="updateQty('${item._id}', ${item.quantity + 1})">+</button>
-            </div>
-            <button class="remove-btn" onclick="removeItem('${item._id}')">
-              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-              Remove
-            </button>
-          </div>
-        </div>`;
-    }
+      <!-- Image -->
+      <div style="flex-shrink:0">${imgHtml}</div>
+
+      <!-- Info -->
+      <div class="cart-item-info">
+        <div class="cart-item-category">${item.category || ''}</div>
+        <div class="cart-item-name" onclick="window.location='${productUrl}'">${item.name}</div>
+        <div class="cart-item-unit-price">${formatCurrency(item.price)} each</div>
+      </div>
+
+      <!-- Right side -->
+      <div class="cart-item-right">
+        <div class="cart-item-total">${formatCurrency(itemTotal)}</div>
+        <div class="qty-control-sm">
+          <button class="qty-btn-sm" onclick="updateQty('${item._id}', ${item.quantity - 1})">−</button>
+          <div class="qty-val-sm">${item.quantity}</div>
+          <button class="qty-btn-sm" onclick="updateQty('${item._id}', ${item.quantity + 1})">+</button>
+        </div>
+        <button class="remove-btn" onclick="removeItem('${item._id}')">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          Remove
+        </button>
+      </div>
+    </div>`;
+}
 
     function updateQty(productId, newQty) {
       if (newQty <= 0) {
