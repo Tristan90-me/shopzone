@@ -259,9 +259,7 @@
       setTimeout(() => toast.remove(), 3000);
     }
 
-    function formatCurrency(n) {
-  return formatCurrencyWith(n, _currencySettings || { symbol: '$', position: 'before' });
-}
+    function formatCurrency(n) { return '$' + Number(n).toFixed(2); }
     function formatDate(d) {
       return new Date(d).toLocaleDateString('en-GB', {
         day: 'numeric', month: 'short', year: 'numeric',
