@@ -1,3 +1,5 @@
+const mongoose = require('mongoose');
+
 const settingsSchema = new mongoose.Schema({
   deliveryEnabled:  { type: Boolean, default: true },
   deliveryFee:      { type: Number, default: 0 },
@@ -5,5 +7,7 @@ const settingsSchema = new mongoose.Schema({
   storeName:        { type: String, default: 'ShopZone' },
   currencyCode:     { type: String, default: 'USD' },
   currencySymbol:   { type: String, default: '$' },
-  currencyPosition: { type: String, default: 'before' }, // 'before' or 'after'
+  currencyPosition: { type: String, default: 'before' },
 }, { timestamps: true });
+
+module.exports = mongoose.model('Settings', settingsSchema);
