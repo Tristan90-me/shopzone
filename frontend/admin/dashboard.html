@@ -174,7 +174,25 @@
       document.getElementById('mobileOverlay').classList.remove('open');
     }
 
-    function formatCurrency(n) { return '$' + Number(n).toFixed(2); }
+    let _adminCurrency = { symbol: 'GH₵', position: 'before' };
+
+    async function loadAdminCurrency() {
+      try {
+        const s = await fetch(`${API}/settings`).then(r => r.json());
+        _adminCurrency = {
+          symbol:   s.currencySymbol   || 'GH₵',
+          position: s.currencyPosition || 'before',
+        };
+      } catch {}
+    }
+
+    function formatCurrency(n) {
+      const num = Number(n).toFixed(2);
+      return _adminCurrency.position === 'after'
+        ? num + _adminCurrency.symbol
+        : _adminCurrency.symbol + num;
+    }
+
     function formatDate(d) {
       return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
     }
@@ -299,17 +317,18 @@
       document.getElementById('adminName').textContent =
         localStorage.getItem('adminUser') || 'Admin';
 
-      try {
-        const [orders, products] = await Promise.all([
-          fetch(`${API}/orders`, { headers: authHeaders() }).then(r => r.json()),
-          fetch(`${API}/products`).then(r => r.json()),
-        ]);
+        try {
+          await loadAdminCurrency();
+          const [orders, products] = await Promise.all([
+            fetch(`${API}/orders`, { headers: authHeaders() }).then(r => r.json()),
+            fetch(`${API}/products`).then(r => r.json()),
+          ]);
 
-        renderStats(orders, products);
-        renderRecentOrders(orders);
-        renderLowStock(products);
-        renderStatusBreakdown(orders);
-      } catch (err) {
+          renderStats(orders, products);
+          renderRecentOrders(orders);
+          renderLowStock(products);
+          renderStatusBreakdown(orders);
+        } catch (err) {
         if (err.message?.includes('401')) logout();
       }
     }

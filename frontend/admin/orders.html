@@ -259,7 +259,25 @@
       setTimeout(() => toast.remove(), 3000);
     }
 
-    function formatCurrency(n) { return '$' + Number(n).toFixed(2); }
+    let _adminCurrency = { symbol: 'GH₵', position: 'before' };
+
+    async function loadAdminCurrency() {
+      try {
+        const s = await fetch(`${API}/settings`).then(r => r.json());
+        _adminCurrency = {
+          symbol:   s.currencySymbol   || 'GH₵',
+          position: s.currencyPosition || 'before',
+        };
+      } catch {}
+    }
+
+    function formatCurrency(n) {
+      const num = Number(n).toFixed(2);
+      return _adminCurrency.position === 'after'
+        ? num + _adminCurrency.symbol
+        : _adminCurrency.symbol + num;
+    }
+
     function formatDate(d) {
       return new Date(d).toLocaleDateString('en-GB', {
         day: 'numeric', month: 'short', year: 'numeric',
@@ -274,6 +292,7 @@
     /* ── Load orders ── */
     async function loadOrders() {
       try {
+        await loadAdminCurrency();
         allOrders = await fetch(`${API}/orders`, { headers: authHeaders() }).then(r => r.json());
         updateCounts();
         filterOrders();

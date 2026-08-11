@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><title>Products — Baaba Hanson Admin</title>
+  <title>Products — Baaba Hanson Admin</title>
   <link rel="stylesheet" href="css/admin.css">
 </head>
 <body>
@@ -261,7 +261,25 @@
       setTimeout(() => toast.remove(), 3000);
     }
 
-    function formatCurrency(n) { return '$' + Number(n).toFixed(2); }
+    let _adminCurrency = { symbol: 'GH₵', position: 'before' };
+
+    async function loadAdminCurrency() {
+      try {
+        const s = await fetch(`${API}/settings`).then(r => r.json());
+        _adminCurrency = {
+          symbol:   s.currencySymbol   || 'GH₵',
+          position: s.currencyPosition || 'before',
+        };
+      } catch {}
+    }
+
+    function formatCurrency(n) {
+      const num = Number(n).toFixed(2);
+      return _adminCurrency.position === 'after'
+        ? num + _adminCurrency.symbol
+        : _adminCurrency.symbol + num;
+    }
+
     function formatDate(d) {
       return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
     }
@@ -275,6 +293,7 @@
     /* ── Load products ── */
     async function loadProducts() {
       try {
+        await loadAdminCurrency();
         allProducts = await fetch(`${API}/products`).then(r => r.json());
         buildCategoryOptions();
         filterProducts();
