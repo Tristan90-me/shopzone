@@ -399,7 +399,9 @@
   <script src="js/cart.js"></script>
   <script src="js/api.js"></script>
   <script>
-    function formatCurrency(n) { return '$' + Number(n).toFixed(2); }
+    function formatCurrency(n) {
+  return formatCurrencyWith(n, _currencySettings || { symbol: '$', position: 'before' });
+}
 
     function launchConfetti() {
       const colors = ['#e8420a','#3b6d11','#1a1714','#f59e0b','#6366f1'];
@@ -515,10 +517,10 @@
     document.getElementById('footer-root').innerHTML = renderFooter();
 
     const raw = sessionStorage.getItem('lastOrder');
-    if (raw) {
+     if (raw) {
       try {
-        const order = JSON.parse(raw);
-        renderOrder(order);
+    const order = JSON.parse(raw);
+    loadCurrencySettings().then(() => renderOrder(order));
         launchConfetti();
         sessionStorage.removeItem('lastOrder');
       } catch {

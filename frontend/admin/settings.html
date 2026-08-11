@@ -88,7 +88,62 @@
           </div>
         </div>
       </div>
+      
+      <!-- Currency card -->
+<div class="settings-card" style="margin-bottom:20px">
+  <div class="settings-card-header">
+    <div class="settings-card-icon">💱</div>
+    <div>
+      <h3>Currency</h3>
+      <p>Set the currency displayed across the storefront</p>
+    </div>
+  </div>
+  <div class="settings-card-body">
 
+    <!-- Quick pick -->
+    <div class="form-group">
+      <label class="form-label">Quick Select</label>
+      <div id="currencyPills" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px">
+        <!-- Injected by JS -->
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:12px;margin:8px 0 16px">
+      <div style="flex:1;height:1px;background:var(--border)"></div>
+      <span style="font-size:12px;color:var(--text-light)">or enter manually</span>
+      <div style="flex:1;height:1px;background:var(--border)"></div>
+    </div>
+
+    <!-- Manual entry -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label" for="currencyCode">Currency Code</label>
+        <input class="form-input" type="text" id="currencyCode"
+          placeholder="e.g. GHS, USD, EUR" maxlength="5">
+        <div class="form-hint">3-letter ISO code</div>
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label" for="currencySymbol">Symbol</label>
+        <input class="form-input" type="text" id="currencySymbol"
+          placeholder="e.g. ₵, $, €" maxlength="5">
+        <div class="form-hint">Shown on prices</div>
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label" for="currencyPosition">Symbol Position</label>
+        <select class="form-select" id="currencyPosition">
+          <option value="before">Before (₵100)</option>
+          <option value="after">After (100₵)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Preview -->
+    <div style="margin-top:16px;padding:12px 16px;background:var(--bg-subtle);border-radius:var(--radius);display:flex;align-items:center;gap:10px">
+      <span style="font-size:13px;color:var(--text-muted)">Preview:</span>
+      <span id="currencyPreview" style="font-family:var(--font-display);font-size:1.2rem;font-weight:700;color:var(--text)">$49.99</span>
+    </div>
+  </div>
+</div>
       <!-- Delivery options card -->
       <div class="settings-card" style="margin-bottom:20px">
         <div class="settings-card-header">
@@ -224,12 +279,41 @@
     .settings-card-body {
       padding: 20px 24px;
     }
-  </style>
+    .currency-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 14px; border-radius: 50px;
+    font-size: 13px; font-weight: 500;
+    border: 1.5px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all var(--transition);
+  }
+    .currency-pill:hover { border-color: var(--border-strong); color: var(--text); }
+    .currency-pill.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+    .currency-pill .pill-symbol { font-weight: 700; color: var(--accent); }
+    .currency-pill.active .pill-symbol { color: var(--gold, #c9a227); }
+    </style>
 
   <script>
     const API ='https://api.baabahanson.com/api';;
     let currentSettings = {};
     let pendingToggles = {};
+
+    const PRESET_CURRENCIES = [
+      { code: 'GHS', symbol: '₵',  name: 'Ghana Cedi',        position: 'before' },
+      { code: 'USD', symbol: '$',  name: 'US Dollar',          position: 'before' },
+      { code: 'EUR', symbol: '€',  name: 'Euro',               position: 'before' },
+      { code: 'GBP', symbol: '£',  name: 'British Pound',      position: 'before' },
+      { code: 'NGN', symbol: '₦',  name: 'Nigerian Naira',     position: 'before' },
+      { code: 'KES', symbol: 'KSh',name: 'Kenyan Shilling',    position: 'before' },
+      { code: 'ZAR', symbol: 'R',  name: 'South African Rand', position: 'before' },
+      { code: 'XOF', symbol: 'CFA',name: 'West African CFA',   position: 'before' },
+      { code: 'CAD', symbol: 'CA$',name: 'Canadian Dollar',    position: 'before' },
+      { code: 'AUD', symbol: 'A$', name: 'Australian Dollar',  position: 'before' },
+      { code: 'JPY', symbol: '¥',  name: 'Japanese Yen',       position: 'before' },
+      { code: 'INR', symbol: '₹',  name: 'Indian Rupee',       position: 'before' },
+    ];
 
     function authHeaders() {
       return {
@@ -300,6 +384,13 @@
         s.pickupEnabled ? 'block' : 'none';
       document.getElementById('pickupAddress').value = s.pickupAddress || '';
 
+      // ── Currency ──
+      document.getElementById('currencyCode').value = s.currencyCode || 'USD';
+      document.getElementById('currencySymbol').value = s.currencySymbol || '$';
+      document.getElementById('currencyPosition').value = s.currencyPosition || 'before';
+      buildCurrencyPills(s.currencyCode || 'USD');
+      updateCurrencyPreview();
+
       // Clear password fields
       document.getElementById('newUsername').value = '';
       document.getElementById('newPassword').value = '';
@@ -322,6 +413,32 @@
       }
     }
 
+        function buildCurrencyPills(activeCurrencyCode) {
+      const container = document.getElementById('currencyPills');
+      container.innerHTML = PRESET_CURRENCIES.map(c => `
+        <button class="currency-pill ${c.code === activeCurrencyCode ? 'active' : ''}"
+          onclick="selectCurrencyPreset('${c.code}')">
+          <span class="pill-symbol">${c.symbol}</span>
+          ${c.code} — ${c.name}
+        </button>`).join('');
+    }
+
+    function selectCurrencyPreset(code) {
+      const preset = PRESET_CURRENCIES.find(c => c.code === code);
+      if (!preset) return;
+      document.getElementById('currencyCode').value = preset.code;
+      document.getElementById('currencySymbol').value = preset.symbol;
+      document.getElementById('currencyPosition').value = preset.position;
+      buildCurrencyPills(code);
+      updateCurrencyPreview();
+    }
+
+    function updateCurrencyPreview() {
+      const symbol   = document.getElementById('currencySymbol').value || '$';
+      const position = document.getElementById('currencyPosition').value || 'before';
+      const preview  = position === 'after' ? `49.99${symbol}` : `${symbol}49.99`;
+      document.getElementById('currencyPreview').textContent = preview;
+    }
     /* ── Save settings ── */
     async function saveSettings() {
       const newPassword = document.getElementById('newPassword').value;
@@ -348,6 +465,9 @@
             ? pendingToggles.pickupEnabled
             : currentSettings.pickupEnabled,
           pickupAddress: document.getElementById('pickupAddress').value.trim(),
+          currencyCode:     document.getElementById('currencyCode').value.trim() || 'USD',
+          currencySymbol:   document.getElementById('currencySymbol').value.trim() || '$',
+          currencyPosition: document.getElementById('currencyPosition').value || 'before',
         };
 
         // Save store settings
@@ -399,8 +519,22 @@
       }
     }
 
-    requireAuth();
-    loadSettings();
+  // Live currency preview on manual input
+  document.getElementById('currencySymbol').addEventListener('input', () => {
+    updateCurrencyPreview();
+    // Deselect pill if manually changed
+    const code = document.getElementById('currencyCode').value.toUpperCase();
+    document.getElementById('currencyCode').value = code;
+    document.querySelectorAll('.currency-pill').forEach(p => p.classList.remove('active'));
+  });
+  document.getElementById('currencyPosition').addEventListener('change', updateCurrencyPreview);
+  document.getElementById('currencyCode').addEventListener('input', () => {
+    const code = document.getElementById('currencyCode').value.toUpperCase();
+    document.getElementById('currencyCode').value = code;
+  });
+
+  requireAuth();
+  loadSettings();
   </script>
 </body>
 </html>

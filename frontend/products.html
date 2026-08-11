@@ -447,7 +447,9 @@ window.addEventListener('load', () => {
     if (urlParams.get('category')) activeCategory = urlParams.get('category');
     if (urlParams.get('search')) document.getElementById('navSearchInput') && (document.getElementById('navSearchInput').value = urlParams.get('search'));
 
-    function formatCurrency(n) { return '$' + Number(n).toFixed(2); }
+    function formatCurrency(n) {
+  return formatCurrencyWith(n, _currencySettings || { symbol: '$', position: 'before' });
+}
 
     function buildProductCard(p) {
       const inStock = p.stock > 0;
@@ -655,7 +657,8 @@ async function init() {
       }
 
       try {
-    allProducts = await ProductsAPI.getAll();
+  await loadCurrencySettings();
+  allProducts = await ProductsAPI.getAll();
     buildCategoryList(allProducts);
     applyFilters();
     await loadNewArrivals();

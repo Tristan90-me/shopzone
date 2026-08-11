@@ -444,7 +444,9 @@
     let currentProduct = null;
     let quantity = 1;
 
-    function formatCurrency(n) { return '$' + Number(n).toFixed(2); }
+    function formatCurrency(n) {
+  return formatCurrencyWith(n, _currencySettings || { symbol: '$', position: 'before' });
+}
 
     function getStockBadge(stock) {
       if (stock === 0) return `<span class="stock-badge out-stock"><span class="stock-dot"></span>Out of Stock</span>`;
@@ -645,7 +647,8 @@ function switchImage(index) {
       }
 
       try {
-        const product = await ProductsAPI.getOne(id);
+      await loadCurrencySettings();
+      const product = await ProductsAPI.getOne(id);
         renderProduct(product);
 
         // Load related products

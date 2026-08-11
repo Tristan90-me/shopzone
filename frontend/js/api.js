@@ -33,3 +33,29 @@ const OrdersAPI = {
 const SettingsAPI = {
   get: () => apiFetch('/settings'),
 };
+
+// ── Currency formatter ──
+// Loads once and caches for the session
+let _currencySettings = null;
+
+async function loadCurrencySettings() {
+  if (_currencySettings) return _currencySettings;
+  try {
+    const s = await SettingsAPI.get();
+    _currencySettings = {
+      symbol:   s.currencySymbol   || '$',
+      code:     s.currencyCode     || 'USD',
+      position: s.currencyPosition || 'before',
+    };
+  } catch {
+    _currencySettings = { symbol: '$', code: 'USD', position: 'before' };
+  }
+  return _currencySettings;
+}
+
+function formatCurrencyWith(amount, settings) {
+  const num = Number(amount).toFixed(2);
+  return settings.position === 'after'
+    ? `${num}${settings.symbol}`
+    : `${settings.symbol}${num}`;
+}

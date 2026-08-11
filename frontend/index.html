@@ -453,9 +453,10 @@
   'Toys':        { image: 'https://images.unsplash.com/photo-1558060370-d644479cb6f7?w=600&q=80' },
 };
 
-    function formatCurrency(amount) {
-      return '$' + Number(amount).toFixed(2);
-    }
+    async function formatCurrency(n) {
+  const c = await loadCurrencySettings();
+  return formatCurrencyWith(n, c);
+}
 
   function buildProductCard(product) {
   const inStock = product.stock > 0;
@@ -471,7 +472,7 @@
   card += '<div class="product-card-category">' + product.category + '</div>';
   card += '<div class="product-card-name">' + product.name + '</div>';
   card += '<div class="product-card-footer">';
-  card += '<div class="product-card-price">' + formatCurrency(product.price) + '</div>';
+  card += '<div class="product-card-price">' + formatCurrencyWith(product.price, _currencySettings || { symbol: '$', position: 'before' }) + '</div>';
   if (inStock) {
     card += '<button class="product-card-add" onclick="event.stopPropagation();addToCart(' + productJson + ')" title="Add to cart">+</button>';
   } else {
@@ -487,7 +488,9 @@
     }
 
     async function loadFeaturedProducts() {
-      try {
+  try {
+    // Pre-load currency settings before rendering cards
+    await loadCurrencySettings();
 const products = await ProductsAPI.getAll();
 const grid = document.getElementById('featuredGrid');
 

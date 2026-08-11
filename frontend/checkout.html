@@ -413,7 +413,9 @@
     let deliveryFee = 0;
     let settings = null;
 
-    function formatCurrency(n) { return '$' + Number(n).toFixed(2); }
+    function formatCurrency(n) {
+  return formatCurrencyWith(n, _currencySettings || { symbol: '$', position: 'before' });
+}
 
     function selectDelivery(type) {
       deliveryType = type;
@@ -575,10 +577,12 @@
     }
 
     // Init
-    document.getElementById('navbar-root').innerHTML = renderNavbar();
-    document.getElementById('footer-root').innerHTML = renderFooter();
-    renderSummaryItems();
-    loadSettings();
+document.getElementById('navbar-root').innerHTML = renderNavbar();
+document.getElementById('footer-root').innerHTML = renderFooter();
+loadCurrencySettings().then(() => {
+renderSummaryItems();
+loadSettings();
+});
   </script>
 </body>
 </html>
